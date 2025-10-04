@@ -1,23 +1,28 @@
 import { GoogleMap, useLoadScript, Marker, InfoWindow } from "@react-google-maps/api";
 import { useMemo, useState } from "react";
+import { Property } from "../../../../types/Property";
 
-export default function MapView({ properties = [] }) {
+interface MapViewProps {
+  properties: Property[];
+}
+
+export default function MapView({ properties = [] }: MapViewProps) {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
   const center = useMemo(() => ({ lat: 34.0736, lng: -118.4004 }), []);
-  const [activeMarker, setActiveMarker] = useState(null);
+  const [activeMarker, setActiveMarker] = useState<string | null>(null);
 
-  const handleMarkerClick = (property) => {
+  const handleMarkerClick = (property: Property): void => {
     setActiveMarker(property.id);
   };
 
-  const handleInfoWindowClose = () => {
+  const handleInfoWindowClose = (): void => {
     setActiveMarker(null);
   };
 
-  const formatPrice = (price) => {
+  const formatPrice = (price: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -63,7 +68,7 @@ export default function MapView({ properties = [] }) {
                       border: '1px solid #ddd'
                     }}
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/100x60';
+                      e.currentTarget.src = 'https://via.placeholder.com/100x60';
                     }}
                   />
                 </div>

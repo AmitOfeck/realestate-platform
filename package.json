@@ -5,12 +5,16 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "concurrently \"yarn workspace frontend dev\" \"yarn workspace backend dev\"",
     "dev:frontend": "yarn workspace frontend dev",
     "dev:backend": "yarn workspace backend dev",
-    "dev": "yarn concurrently \"yarn dev:backend\" \"yarn dev:frontend\""
+    "build": "yarn workspace frontend build && yarn workspace backend build",
+    "build:frontend": "yarn workspace frontend build",
+    "build:backend": "yarn workspace backend build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "@types/node": "^24.6.2",
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
   }
 }
-

@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import './App.css'
 import MapView from "./components/MapView";
+import { Property, PropertiesResponse } from "../../../types/Property";
 
 export default function App() {
-  const [properties, setProperties] = useState([]);
+  const [properties, setProperties] = useState<Property[]>([]);
 
   useEffect(() => {
     fetch("/api/properties")
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: PropertiesResponse) => {
         console.log(data); 
         setProperties(data.data); 
       })

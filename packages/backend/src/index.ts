@@ -1,5 +1,6 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { Property, ApiResponse, PropertiesResponse } from '../../../types/Property';
 
 const app = express();
 
@@ -8,14 +9,14 @@ app.use(cors());
 app.use(express.json());
 
 // Sample properties data for Beverly Hills area
-const properties = [
+const properties: Property[] = [
   {
     id: '1',
     name: 'Luxury Beverly Hills Estate',
     price: 2500000,
     lat: 34.0736,
     lng: -118.4004,
-    image: 'https://via.placeholder.com/100x60/4CAF50/white?text=Luxury+Estate',
+    image: 'https://placehold.co/100x60/4CAF50/white?text=Luxury+Estate',
     bedrooms: 5,
     bathrooms: 4,
     sqft: 3500,
@@ -27,7 +28,7 @@ const properties = [
     price: 1800000,
     lat: 34.0800,
     lng: -118.4100,
-    image: 'https://via.placeholder.com/100x60/2196F3/white?text=Modern+Villa',
+    image: 'https://placehold.co/100x60/2196F3/white?text=Modern+Villa',
     bedrooms: 4,
     bathrooms: 3,
     sqft: 2800,
@@ -39,7 +40,7 @@ const properties = [
     price: 3200000,
     lat: 34.0650,
     lng: -118.3900,
-    image: 'https://via.placeholder.com/100x60/FF9800/white?text=Classic+Home',
+    image: 'https://placehold.co/100x60/FF9800/white?text=Classic+Home',
     bedrooms: 6,
     bathrooms: 5,
     sqft: 4200,
@@ -51,7 +52,7 @@ const properties = [
     price: 1200000,
     lat: 34.0850,
     lng: -118.4200,
-    image: 'https://via.placeholder.com/100x60/9C27B0/white?text=Contemporary',
+    image: 'https://placehold.co/100x60/9C27B0/white?text=Condo',
     bedrooms: 3,
     bathrooms: 2,
     sqft: 1800,
@@ -63,7 +64,7 @@ const properties = [
     price: 4500000,
     lat: 34.0700,
     lng: -118.3800,
-    image: 'https://via.placeholder.com/100x60/F44336/white?text=Penthouse',
+    image: 'https://placehold.co/100x60/F44336/white?text=Penthouse',
     bedrooms: 4,
     bathrooms: 4,
     sqft: 3200,
@@ -72,7 +73,7 @@ const properties = [
 ];
 
 // Routes
-app.get('/api/properties', (req, res) => {
+app.get('/api/properties', (req: Request, res: Response<PropertiesResponse>) => {
   try {
     res.json({
       success: true,
@@ -82,17 +83,20 @@ app.get('/api/properties', (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
+      data: [],
+      count: 0,
       error: 'Failed to fetch properties'
     });
   }
 });
 
-app.get('/api/properties/:id', (req, res) => {
+app.get('/api/properties/:id', (req: Request, res: Response<ApiResponse<Property>>) => {
   try {
     const property = properties.find(p => p.id === req.params.id);
     if (!property) {
       return res.status(404).json({
         success: false,
+        data: {} as Property,
         error: 'Property not found'
       });
     }
@@ -103,17 +107,20 @@ app.get('/api/properties/:id', (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
+      data: {} as Property,
       error: 'Failed to fetch property'
     });
   }
 });
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response<ApiResponse<{ message: string; timestamp: string }>>) => {
   res.json({
     success: true,
-    message: 'Backend server is running',
-    timestamp: new Date().toISOString()
+    data: {
+      message: 'Backend server is running',
+      timestamp: new Date().toISOString()
+    }
   });
 });
 

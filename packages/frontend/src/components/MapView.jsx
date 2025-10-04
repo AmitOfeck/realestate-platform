@@ -1,12 +1,30 @@
-import { GoogleMap, useLoadScript, Marker } from "@react-google-maps/api";
-import { useMemo } from "react";
+import { GoogleMap, useLoadScript, Marker, InfoWindow } from "@react-google-maps/api";
+import { useMemo, useState } from "react";
 
-export default function MapView({ properties }) {
+export default function MapView({ properties = [] }) {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
-  const center = useMemo(() => ({ lat: 32.0853, lng: 34.7818 }), []); 
+  const center = useMemo(() => ({ lat: 34.0736, lng: -118.4004 }), []);
+  const [activeMarker, setActiveMarker] = useState(null);
+
+  const handleMarkerClick = (property) => {
+    setActiveMarker(property.id);
+  };
+
+  const handleInfoWindowClose = () => {
+    setActiveMarker(null);
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
 
   if (!isLoaded) return <div>Loading Map...</div>;
 
@@ -16,8 +34,43 @@ export default function MapView({ properties }) {
       center={center}
       mapContainerStyle={{ width: "100%", height: "100vh" }}
     >
-      {properties.map((p) => (
-        <Marker key={p.id} position={{ lat: p.lat, lng: p.lng }} />
+      {properties.map((property) => (
+        <Marker
+          key={property.id}
+          position={{ lat: property.lat, lng: property.lng }}
+          onClick={() => handleMarkerClick(property)}
+        >
+          {activeMarker === property.id && (
+            <InfoWindow onCloseClick={handleInfoWindowClose}>
+              <div style={{ padding: '8px', maxWidth: '200px' }}>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '14px', color: '#333' }}>
+                    {property.name}
+                  </strong>
+                </div>
+                <div style={{ marginBottom: '8px', fontSize: '16px', color: '#2E7D32', fontWeight: 'bold' }}>
+                  {formatPrice(property.price)}
+                </div>
+                <div>
+                  <img
+                    src={property.image || 'https://via.placeholder.com/100x60'}
+                    alt={property.name}
+                    style={{
+                      width: '100px',
+                      height: '60px',
+                      objectFit: 'cover',
+                      borderRadius: '4px',
+                      border: '1px solid #ddd'
+                    }}
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/100x60';
+                    }}
+                  />
+                </div>
+              </div>
+            </InfoWindow>
+          )}
+        </Marker>
       ))}
     </GoogleMap>
   );

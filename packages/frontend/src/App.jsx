@@ -8,7 +8,10 @@ export default function App() {
   useEffect(() => {
     fetch("/api/properties")
       .then((res) => res.json())
-      .then(setProperties)
+      .then((data) => {
+        console.log(data); 
+        setProperties(data.data); 
+      })
       .catch((err) => console.error(err));
   }, []);
 

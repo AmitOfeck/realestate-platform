@@ -7,7 +7,7 @@ const router = Router();
 router.get('/health', PropertiesController.getHealthStatus);
 
 // Properties routes
-router.get('/properties', PropertiesController.getAllProperties);
-router.get('/properties/:id', PropertiesController.getPropertyById);
+router.get('/', PropertiesController.getAllProperties);
+router.get('/:id', PropertiesController.getPropertyById);
 
 export default router;

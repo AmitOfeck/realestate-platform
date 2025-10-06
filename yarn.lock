@@ -655,6 +655,13 @@
     "@types/connect" "*"
     "@types/node" "*"
 
+"@types/cheerio@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-1.0.0.tgz#7b0bc1451711a85291b30f0426e46d6d8bf2e0fd"
+  integrity sha512-zAaImHWoh5RY2CLgU2mvg3bl2k3F65B0N5yphuII3ythFLPmJhL7sj1RDu6gSxcgqHlETbr/lhA2OBY+WF1fXQ==
+  dependencies:
+    cheerio "*"
+
 "@types/connect@*":
   version "3.4.38"
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.38.tgz#5ba7f3bc4fbbdeaff8dded952e5ff2cc53f8d858"
@@ -1008,7 +1015,7 @@ cheerio-select@^2.1.0:
     domhandler "^5.0.3"
     domutils "^3.0.1"
 
-cheerio@^1.1.2:
+cheerio@*, cheerio@^1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/cheerio/-/cheerio-1.1.2.tgz#26af77e89336c81c63ea83197f868b4cbd351369"
   integrity sha512-IkxPpb5rS/d1IiLbHMgfPuS0FgiWTtFIm/Nj+2woXDLTZ7fOT2eqzgYbdMlLweqlHbsZjxEChoVK+7iph7jyQg==

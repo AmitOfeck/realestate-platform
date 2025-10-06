@@ -13,6 +13,9 @@ export default function MapView({ properties = [] }: MapViewProps) {
 
   const center = useMemo(() => ({ lat: 34.0736, lng: -118.4004 }), []);
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
+  
+  // Ensure properties is always an array
+  const safeProperties = Array.isArray(properties) ? properties : [];
 
   const handleMarkerClick = (property: Property): void => {
     setActiveMarker(property.id);
@@ -39,7 +42,7 @@ export default function MapView({ properties = [] }: MapViewProps) {
       center={center}
       mapContainerStyle={{ width: "100%", height: "100vh" }}
     >
-      {properties.map((property) => (
+      {safeProperties.map((property) => (
         <Marker
           key={property.id}
           position={{ lat: property.lat, lng: property.lng }}

@@ -1,15 +1,24 @@
-import app from "./app";
-import expressListEndpoints from "express-list-endpoints";
+import app from './app';
 
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-  console.log(`✅ Backend running on port ${PORT}`);
-  console.log(`🧭 Scraper API: http://localhost:${PORT}/api/scrape/:zipcode`);
+const startServer = (): void => {
+  app.listen(PORT, () => {
+    console.log(`✅ Backend running on port ${PORT}`);
+  });
+};
 
-  // print
-  setTimeout(() => {
-    console.log("📋 Registered routes:");
-    console.table(expressListEndpoints(app));
-  }, 500);
+// Handle uncaught exceptions
+process.on('uncaughtException', (error: Error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
 });
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason: unknown) => {
+  console.error('Unhandled Rejection:', reason);
+  process.exit(1);
+});
+
+// Start the server
+startServer();

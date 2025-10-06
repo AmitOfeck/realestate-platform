@@ -1,30 +1,11 @@
-import express, { Request, Response } from "express";
-import { scrapePropertiesByZip } from "../services/scraperService";
-const router = express.Router();
+import { Router } from 'express';
+import { ScraperController } from '../controllers/scraper.controller';
 
-console.log("✅ scraper.routes.ts loaded");
+const router = Router();
 
+console.log('📁 scraper.routes.ts LOADED FULLY');
 
-router.get("/:zipcode", async (req: Request, res: Response) => {
-  console.log("✅ Scraper route hit with zipcode:", req.params.zipcode);
-  console.log("✅ Request received:", req.method, req.url, req.params); 
-  const zipcode = req.params.zipcode;
-  try {
-    const properties = await scrapePropertiesByZip(zipcode);
-    res.json({
-      success: true,
-      zipcode: zipcode,
-      message: "Route working successfully!",
-      data: properties,
-    });
-  } catch (error) {
-    console.error("Scraping error:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Internal server error", details: error });
-  }
-});
-
-
+// GET /api/scrape/:zipcode
+router.get('/:zipcode', ScraperController.scrapeZipcode);
 
 export default router;

@@ -9,9 +9,9 @@ export default function App() {
   useEffect(() => {
     fetch("/api/properties")
       .then((res) => res.json())
-      .then((data: PropertiesResponse) => {
+      .then((data) => {
         console.log(data); 
-        setProperties(data.data); 
+        setProperties(data.data?.data || []); 
       })
       .catch((err) => console.error(err));
   }, []);

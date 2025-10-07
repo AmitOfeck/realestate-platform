@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export interface SimplifiedProperty {
+export interface PreviousSaleProperty {
   id: string;
   address: string;
   price: number;
@@ -14,13 +14,13 @@ export interface SimplifiedProperty {
   saleDate?: string;
 }
 
-export interface ScrapeResult {
+export interface PreviousSalesResult {
   success: boolean;
-  data?: SimplifiedProperty[];
+  data?: PreviousSaleProperty[];
   message?: string;
 }
 
-export const fetchPropertiesByZipcode = async (zipcode: string): Promise<ScrapeResult> => {
+export const getPreviousSalesByZip = async (zipcode: string): Promise<PreviousSalesResult> => {
   const API_KEY = process.env.ATTOM_API_KEY;
   const BASE_URL = process.env.ATTOM_BASE_URL;
 
@@ -43,7 +43,7 @@ export const fetchPropertiesByZipcode = async (zipcode: string): Promise<ScrapeR
   try {
     const url = `${BASE_URL}/sale/snapshot?postalcode=${zipcode}&startSaleSearchDate=2022/01/01&endSaleSearchDate=2025/12/31`;
     
-    console.log(`📡 Making single API call to ATTOM for zipcode: ${zipcode}`);
+    console.log(`📡 Fetching previous sales for zipcode: ${zipcode}`);
 
     const { data } = await axios.get(url, {
       headers: {
@@ -70,9 +70,9 @@ export const fetchPropertiesByZipcode = async (zipcode: string): Promise<ScrapeR
         type: p.summary?.propertyType || 'Other',
         saleDate: p.sale?.saleTransDate || undefined,
       }))
-      .filter((p: SimplifiedProperty) => p.lat !== 0 && p.lng !== 0); // Only properties with valid coordinates
+      .filter((p: PreviousSaleProperty) => p.lat !== 0 && p.lng !== 0); // Only properties with valid coordinates
 
-    console.log(`🏠 Processed ${properties.length} valid properties for zipcode ${zipcode}`);
+    console.log(`🏠 Processed ${properties.length} previous sales for zipcode ${zipcode}`);
 
     return { 
       success: true, 
@@ -80,9 +80,9 @@ export const fetchPropertiesByZipcode = async (zipcode: string): Promise<ScrapeR
     };
 
   } catch (error) {
-    console.error('❌ Error fetching properties:', error);
+    console.error('❌ Error fetching previous sales:', error);
     
-    let errorMessage = 'Failed to fetch properties';
+    let errorMessage = 'Failed to fetch previous sales';
     
     if (axios.isAxiosError(error)) {
       if (error.response) {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import './styles/pages/App.css'
 import PropertyGrid from "./components/PropertyGrid";
 import PropertyFilters from "./components/PropertyFilters";
+import MapView from "./components/MapView";
 import { Property } from "../../backend/src/types/property";
 
 export default function App() {
@@ -116,6 +117,15 @@ export default function App() {
         <PropertyFilters 
           onFiltersChange={handleFiltersChange}
           onClearFilters={handleClearFilters}
+        />
+      </div>
+
+      {/* Map View */}
+      <div className="map-section">
+        <MapView 
+          properties={properties}
+          loading={loading}
+          error={error}
         />
       </div>
 

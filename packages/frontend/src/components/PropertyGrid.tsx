@@ -114,7 +114,11 @@ export default function PropertyGrid({
       {/* Property Grid */}
       <div className="property-grid">
         {properties.map((property) => (
-          <div key={property.id} className="property-card">
+          <div 
+            key={property.id} 
+            className="property-card"
+            data-property-id={property.id}
+          >
             <div className="property-card-header">
               <h3 className="property-address">
                 {property.addressOneLine}

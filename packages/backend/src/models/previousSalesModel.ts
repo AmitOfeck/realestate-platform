@@ -29,5 +29,7 @@ const previousSaleSchema = new mongoose.Schema<Property>({
 // Index for efficient queries by zipcode
 previousSaleSchema.index({ addressLine2: 1 });
 previousSaleSchema.index({ createdAt: 1 });
+// Add unique index for better duplicate prevention performance
+previousSaleSchema.index({ id: 1 }, { unique: true });
 
 export const PreviousSaleModel = mongoose.model<Property>('PreviousSale', previousSaleSchema);

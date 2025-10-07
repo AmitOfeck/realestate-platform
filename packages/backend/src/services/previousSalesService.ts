@@ -37,6 +37,12 @@ export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]
 
 async function getCachedData(zipcode: string): Promise<Property[]> {
   try {
+    // If CACHE_TTL_DAYS is 0, skip caching entirely
+    if (CACHE_TTL_DAYS === 0) {
+      console.log(`🚫 Cache disabled (CACHE_TTL_DAYS=0) for zipcode ${zipcode}`);
+      return [];
+    }
+    
     const cutoffDate = new Date(Date.now() - CACHE_TTL_MS);
     
     const cachedProperties = await PreviousSaleModel.find({
@@ -59,7 +65,7 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
     throw new Error('Missing ATTOM API configuration');
   }
 
-  const url = `${BASE_URL}/sale/snapshot?postalcode=${zipcode}&startSaleSearchDate=2022/01/01&endSaleSearchDate=2025/12/31`;
+  const url = `${BASE_URL}/sale/snapshot?postalcode=${zipcode}&startSaleSearchDate=2022/01/01&endSaleSearchDate=2025/12/31&pagesize=100`;
   
   console.log(`📡 Making API call to ATTOM for zipcode: ${zipcode}`);
 
@@ -118,17 +124,18 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
 
 async function saveToCache(properties: Property[], zipcode: string): Promise<void> {
   try {
-    // Remove old cached data for this zipcode
-    await PreviousSaleModel.deleteMany({
-      addressLine2: { $regex: zipcode, $options: 'i' }
-    });
-
-    // Insert new data
-    if (properties.length > 0) {
-      await PreviousSaleModel.insertMany(properties);
-    }
+    // Use bulk upsert for better performance
+    const bulkOps = properties.map(property => ({
+      updateOne: {
+        filter: { id: property.id },
+        update: property,
+        upsert: true
+      }
+    }));
+    
+    await PreviousSaleModel.bulkWrite(bulkOps);
+    console.log(`💾 Upserted ${properties.length} properties for zipcode ${zipcode}`);
   } catch (error) {
     console.warn(`⚠️ Error saving to cache for zipcode ${zipcode}:`, error);
-    // Don't throw error - we still want to return the data even if caching fails
   }
 }

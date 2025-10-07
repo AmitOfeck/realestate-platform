@@ -1,8 +1,16 @@
-/* App Container - Enhanced Modern Design */
+/* App Container - Enhanced Centered Layout */
 .app-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
 
 .app-container::before {
@@ -27,25 +35,27 @@
   border-bottom: 1px solid rgba(229, 231, 235, 0.5);
   position: relative;
   z-index: 1;
+  width: 100%;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
 }
 
 .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   padding: 0 1.5rem;
 }
 
 .header-inner {
-  padding: 3rem 0;
+  padding: 2.5rem 0;
   text-align: center;
   position: relative;
 }
 
 .main-title {
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #111827;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   background: linear-gradient(135deg, #3b82f6, #059669);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -58,26 +68,26 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .search-label {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: #374151;
   letter-spacing: -0.025em;
 }
 
 .search-input {
-  padding: 1rem 1.25rem;
+  padding: 0.875rem 1.125rem;
   font-size: 1.125rem;
   font-weight: 600;
   border: 2px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 220px;
+  width: 200px;
   background: white;
   color: #1f2937;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -96,13 +106,13 @@
 }
 
 .search-button {
-  padding: 1rem 2rem;
+  padding: 0.875rem 1.75rem;
   font-size: 1.125rem;
   font-weight: 700;
   color: white;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
@@ -149,37 +159,44 @@
 
 .search-description {
   color: #6b7280;
-  font-size: 1rem;
+  font-size: 0.95rem;
   margin: 0;
   font-weight: 500;
   letter-spacing: -0.025em;
 }
 
-/* Sections */
+/* Sections - Centered and Proportional */
 .filters-section,
 .map-section,
 .results-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  width: 100%;
   position: relative;
   z-index: 1;
 }
 
 .filters-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .map-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .results-container {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
+  }
+  
+  .header {
+    margin-bottom: 1rem;
+    border-radius: 16px;
+  }
+  
   .header-content {
     padding: 0 1rem;
   }
@@ -189,7 +206,7 @@
   }
   
   .main-title {
-    font-size: 2.25rem;
+    font-size: 2rem;
   }
   
   .search-container {
@@ -199,38 +216,32 @@
   
   .search-input {
     width: 100%;
-    max-width: 280px;
+    max-width: 250px;
   }
   
   .search-button {
     width: 100%;
-    max-width: 280px;
-  }
-  
-  .filters-section,
-  .map-section,
-  .results-container {
-    padding: 0 1rem;
+    max-width: 250px;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
+  .main-title {
+    font-size: 2.25rem;
+  }
+  
+  .search-container {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1025px) {
   .main-title {
     font-size: 2.5rem;
   }
   
   .search-container {
     gap: 1.25rem;
-  }
-}
-
-@media (min-width: 1025px) {
-  .main-title {
-    font-size: 2.75rem;
-  }
-  
-  .search-container {
-    gap: 1.5rem;
   }
 }
 

@@ -9,6 +9,9 @@ interface MapViewProps {
   error: string | null;
 }
 
+// ✅ SOLUTION: Move libraries array outside component to prevent recreation on every render
+const GOOGLE_MAPS_LIBRARIES = ['places'] as ('places')[];
+
 // Default center (Los Angeles)
 const DEFAULT_CENTER = {
   lat: 34.0522,
@@ -58,7 +61,7 @@ export default function MapView({ properties, error }: MapViewProps) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: ['places']
+    libraries: GOOGLE_MAPS_LIBRARIES
   });
 
   // Map load handler

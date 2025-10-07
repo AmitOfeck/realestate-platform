@@ -1,11 +1,16 @@
-import { Router } from 'express';
-import { ScraperController } from '../controllers/scraper.controller';
+import express from 'express';
+import { fetchPropertiesByZipcode } from '../services/scraperService';
 
-const router = Router();
+const router = express.Router();
 
 console.log('📁 scraper.routes.ts LOADED FULLY');
 
-// GET /api/scrape/:zipcode
-router.get('/:zipcode', ScraperController.scrapeZipcode);
+router.get('/:zipcode', async (req, res) => {
+  const { zipcode } = req.params;
+  console.log(`📡 Fetching properties for zipcode: ${zipcode}`);
+
+  const result = await fetchPropertiesByZipcode(zipcode);
+  res.json(result);
+});
 
 export default router;

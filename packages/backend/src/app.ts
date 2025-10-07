@@ -1,7 +1,11 @@
+import dotenv from 'dotenv';
 import express, { Application } from 'express';
 import cors from 'cors';
 import scraperRoutes from './routes/scraper.routes';
 import propertiesRoutes from './routes/properties.routes';
+
+// Load environment variables
+dotenv.config();
 
 const app: Application = express();
 

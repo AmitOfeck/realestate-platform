@@ -1,4 +1,5 @@
-import { Property } from "../../../../types/property";
+import { Property } from "../../../backend/src/types/property";
+import '../styles/components/PropertyGrid.css';
 
 interface PropertyGridProps {
   properties: Property[];

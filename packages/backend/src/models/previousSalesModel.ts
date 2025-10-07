@@ -40,4 +40,8 @@ previousSaleSchema.index({ addressLine2: 1, price: 1 }); // Zipcode + Price
 previousSaleSchema.index({ addressLine2: 1, bedrooms: 1 }); // Zipcode + Bedrooms
 previousSaleSchema.index({ addressLine2: 1, sqft: 1 }); // Zipcode + Sqft
 
+previousSaleSchema.index({ addressLine2: 1, saleDate: -1 }); // Zipcode + Sale Date
+previousSaleSchema.index({ addressLine2: 1, yearBuilt: 1 }); // Zipcode + Year Built
+previousSaleSchema.index({ saleDate: 1 }); // Sale Date filtering (ascending for range queries)
+
 export const PreviousSaleModel = mongoose.model<Property>('PreviousSale', previousSaleSchema);

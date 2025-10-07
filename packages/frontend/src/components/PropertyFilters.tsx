@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import './PropertyFilters.css';
+import { useState } from 'react';
+import '../styles/components/PropertyFilters.css';
 
 interface PropertyFiltersProps {
   onFiltersChange: (filters: any) => void;
@@ -15,7 +15,9 @@ export default function PropertyFilters({ onFiltersChange, onClearFilters }: Pro
     minSqft: '',
     maxSqft: '',
     yearBuiltFrom: '',
-    yearBuiltTo: ''
+    yearBuiltTo: '',
+    yearOfSaleFrom: '',
+    yearOfSaleTo: ''
   });
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -44,7 +46,9 @@ export default function PropertyFilters({ onFiltersChange, onClearFilters }: Pro
       minSqft: '',
       maxSqft: '',
       yearBuiltFrom: '',
-      yearBuiltTo: ''
+      yearBuiltTo: '',
+      yearOfSaleFrom: '',
+      yearOfSaleTo: ''
     });
     onClearFilters();
   };
@@ -150,6 +154,26 @@ export default function PropertyFilters({ onFiltersChange, onClearFilters }: Pro
                   placeholder="To Year"
                   value={filters.yearBuiltTo}
                   onChange={(e) => handleFilterChange('yearBuiltTo', e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Sale Year */}
+            <div className="filter-group">
+              <label>🏠 Sale Year</label>
+              <div className="range-inputs">
+                <input
+                  type="number"
+                  placeholder="From Year"
+                  value={filters.yearOfSaleFrom}
+                  onChange={(e) => handleFilterChange('yearOfSaleFrom', e.target.value)}
+                />
+                <span>to</span>
+                <input
+                  type="number"
+                  placeholder="To Year"
+                  value={filters.yearOfSaleTo}
+                  onChange={(e) => handleFilterChange('yearOfSaleTo', e.target.value)}
                 />
               </div>
             </div>

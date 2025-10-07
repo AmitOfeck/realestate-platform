@@ -24,6 +24,8 @@ export async function fetchPreviousSales(req: Request, res: Response): Promise<v
       maxSqft: query.maxSqft ? Number(query.maxSqft) : undefined,
       yearBuiltFrom: query.yearBuiltFrom ? Number(query.yearBuiltFrom) : undefined,
       yearBuiltTo: query.yearBuiltTo ? Number(query.yearBuiltTo) : undefined,
+      yearOfSaleFrom: query.yearOfSaleFrom ? Number(query.yearOfSaleFrom) : undefined,
+      yearOfSaleTo: query.yearOfSaleTo ? Number(query.yearOfSaleTo) : undefined,
     };
 
     // Remove undefined values

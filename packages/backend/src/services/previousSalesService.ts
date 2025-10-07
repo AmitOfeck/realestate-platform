@@ -12,6 +12,8 @@ interface SaleFilters {
   maxSqft?: number;
   yearBuiltFrom?: number;
   yearBuiltTo?: number;
+  yearOfSaleFrom?: number;
+  yearOfSaleTo?: number;
 }
 
 export async function getPreviousSalesByZip(zipcode: string, filters?: SaleFilters): Promise<Property[]> {
@@ -80,9 +82,20 @@ async function getExistingData(zipcode: string, filters?: SaleFilters): Promise<
       if (filters.yearBuiltTo) query.yearBuilt.$lte = filters.yearBuiltTo;
     }
 
+    // Add sale year filters
+    if (filters?.yearOfSaleFrom || filters?.yearOfSaleTo) {
+      query.saleDate = {};
+      if (filters.yearOfSaleFrom) {
+        query.saleDate.$gte = `${filters.yearOfSaleFrom}-01-01`;
+      }
+      if (filters.yearOfSaleTo) {
+        query.saleDate.$lte = `${filters.yearOfSaleTo}-12-31`;
+      }
+    }
+
     const existingProperties = await PreviousSaleModel.find(query)
       .sort({ saleDate: -1 })
-      .limit(50)
+      //.limit(50)
       .lean();
 
     return existingProperties;
@@ -111,6 +124,16 @@ function applyFilters(properties: Property[], filters?: SaleFilters): Property[]
     // Year built filter
     if (filters.yearBuiltFrom && property.yearBuilt && property.yearBuilt < filters.yearBuiltFrom) return false;
     if (filters.yearBuiltTo && property.yearBuilt && property.yearBuilt > filters.yearBuiltTo) return false;
+
+    // Sale year filter
+    if (filters.yearOfSaleFrom && property.saleDate) {
+      const saleYear = new Date(property.saleDate).getFullYear();
+      if (saleYear < filters.yearOfSaleFrom) return false;
+    }
+    if (filters.yearOfSaleTo && property.saleDate) {
+      const saleYear = new Date(property.saleDate).getFullYear();
+      if (saleYear > filters.yearOfSaleTo) return false;
+    }
 
     return true;
   });

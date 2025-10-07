@@ -1,8 +1,8 @@
 import { useState } from "react";
-import './App.css'
+import './styles/pages/App.css'
 import PropertyGrid from "./components/PropertyGrid";
 import PropertyFilters from "./components/PropertyFilters";
-import { Property } from "../../../types/property";
+import { Property } from "../../backend/src/types/property";
 
 export default function App() {
   const [zipcode, setZipcode] = useState("90210");

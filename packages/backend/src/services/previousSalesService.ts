@@ -2,9 +2,6 @@ import axios from 'axios';
 import { Property } from '../types/property';
 import { PreviousSaleModel } from '../models/previousSalesModel';
 
-const CACHE_TTL_DAYS = parseInt(process.env.CACHE_TTL_DAYS || '7');
-const CACHE_TTL_MS = CACHE_TTL_DAYS * 24 * 60 * 60 * 1000; // Convert days to milliseconds
-
 export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]> {
   // Validate zipcode
   if (!/^\d{5}$/.test(zipcode)) {
@@ -12,21 +9,20 @@ export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]
   }
 
   try {
-    // Check cache first
-    const cachedData = await getCachedData(zipcode);
-    if (cachedData.length > 0) {
-      console.log(`📦 Cache hit for zipcode ${zipcode}: ${cachedData.length} properties`);
-      return cachedData;
+    // Check if we already have data for this zipcode in database
+    const existingData = await getExistingData(zipcode);
+    if (existingData.length > 0) {
+      console.log(`📦 Found ${existingData.length} existing properties for zipcode ${zipcode}`);
+      return existingData;
     }
 
-    // Cache miss - fetch from ATTOM API
-    console.log(`🌐 Cache miss for zipcode ${zipcode} - fetching from ATTOM API`);
+    // No existing data - fetch from ATTOM API
+    console.log(`🌐 No existing data for zipcode ${zipcode} - fetching from ATTOM API`);
     const freshData = await fetchFromAttomAPI(zipcode);
     
-    // Save to cache
-    await saveToCache(freshData, zipcode);
+    // Save to database for future queries
+    await saveToDatabase(freshData, zipcode);
     
-    console.log(`💾 Cached ${freshData.length} properties for zipcode ${zipcode}`);
     return freshData;
 
   } catch (error) {
@@ -35,24 +31,16 @@ export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]
   }
 }
 
-async function getCachedData(zipcode: string): Promise<Property[]> {
+async function getExistingData(zipcode: string): Promise<Property[]> {
   try {
-    // If CACHE_TTL_DAYS is 0, skip caching entirely
-    if (CACHE_TTL_DAYS === 0) {
-      console.log(`🚫 Cache disabled (CACHE_TTL_DAYS=0) for zipcode ${zipcode}`);
-      return [];
-    }
-    
-    const cutoffDate = new Date(Date.now() - CACHE_TTL_MS);
-    
-    const cachedProperties = await PreviousSaleModel.find({
-      addressLine2: { $regex: zipcode, $options: 'i' },
-      createdAt: { $gte: cutoffDate }
+    // Use zipcode index for fast query
+    const existingProperties = await PreviousSaleModel.find({
+      addressLine2: { $regex: zipcode, $options: 'i' }
     }).sort({ saleDate: -1 });
 
-    return cachedProperties.map(doc => doc.toObject());
+    return existingProperties.map(doc => doc.toObject());
   } catch (error) {
-    console.warn(`⚠️ Error reading from cache for zipcode ${zipcode}:`, error);
+    console.warn(`⚠️ Error reading existing data for zipcode ${zipcode}:`, error);
     return [];
   }
 }
@@ -122,20 +110,22 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
   return properties;
 }
 
-async function saveToCache(properties: Property[], zipcode: string): Promise<void> {
+async function saveToDatabase(properties: Property[], zipcode: string): Promise<void> {
   try {
-    // Use bulk upsert for better performance
-    const bulkOps = properties.map(property => ({
-      updateOne: {
-        filter: { id: property.id },
-        update: property,
-        upsert: true
-      }
-    }));
+    // First, delete any existing properties for this zipcode to prevent duplicates
+    const deleteResult = await PreviousSaleModel.deleteMany({
+      addressLine2: { $regex: zipcode, $options: 'i' }
+    });
     
-    await PreviousSaleModel.bulkWrite(bulkOps);
-    console.log(`💾 Upserted ${properties.length} properties for zipcode ${zipcode}`);
+    if (deleteResult.deletedCount > 0) {
+      console.log(`🗑️ Deleted ${deleteResult.deletedCount} existing properties for zipcode ${zipcode}`);
+    }
+    
+    // Then insert all new properties
+    await PreviousSaleModel.insertMany(properties);
+    
+    console.log(`💾 Saved ${properties.length} properties for zipcode ${zipcode}`);
   } catch (error) {
-    console.warn(`⚠️ Error saving to cache for zipcode ${zipcode}:`, error);
+    console.warn(`⚠️ Error saving to database for zipcode ${zipcode}:`, error);
   }
 }

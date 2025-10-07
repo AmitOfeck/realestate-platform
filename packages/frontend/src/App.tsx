@@ -1,26 +1,18 @@
 import { useState } from "react";
 import './App.css'
-import MapView from "./components/MapView";
-
-interface SimplifiedProperty {
-  id: string;
-  address: string;
-  price: number;
-  lat: number;
-  lng: number;
-  beds?: number;
-  baths?: number;
-  sqft?: number;
-  yearBuilt?: number;
-  type?: string;
-  saleDate?: string;
-}
+import PropertyGrid from "./components/PropertyGrid";
+import { Property } from "../../../types/property";
 
 export default function App() {
   const [zipcode, setZipcode] = useState("90210");
-  const [properties, setProperties] = useState<SimplifiedProperty[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<{
+    zipcode: string;
+    count: number;
+    averagePrice: number;
+  } | null>(null);
 
   const handleZipcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -36,15 +28,21 @@ export default function App() {
     setLoading(true);
     setError(null);
     setProperties([]);
+    setSearchResults(null);
     
     try {
       console.log(`🔍 Searching for properties in zipcode: ${zipcode}`);
-      const response = await fetch(`http://localhost:8080/api/scrape/${zipcode}`);
+      const response = await fetch(`http://localhost:8080/api/previous-sales/${zipcode}`);
       const data = await response.json();
       
-      if (data.success && data.data) {
-        console.log(`✅ Successfully loaded ${data.data.length} properties`);
-        setProperties(data.data);
+      if (data.success && data.properties) {
+        console.log(`✅ Successfully loaded ${data.properties.length} properties`);
+        setProperties(data.properties);
+        setSearchResults({
+          zipcode: zipcode,
+          count: data.count || data.properties.length,
+          averagePrice: data.averagePrice || 0
+        });
       } else {
         console.error(`❌ Failed to fetch properties: ${data.message}`);
         setError(data.message || 'Failed to fetch properties');
@@ -58,75 +56,53 @@ export default function App() {
   };
 
   return (
-    <div>
-      <div style={{ 
-        textAlign: "center", 
-        padding: "20px",
-        background: "#f5f5f5",
-        borderBottom: "1px solid #ddd"
-      }}>
-        <h1 style={{ margin: "0 0 20px 0", color: "#333" }}>🏠 Real Estate Map</h1>
-        
-        <div style={{ 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center",
-          gap: "10px",
-          flexWrap: "wrap"
-        }}>
-          <label style={{ fontSize: "16px", fontWeight: "bold", color: "#555" }}>
-            Zipcode:
-          </label>
-          <input
-            type="text"
-            value={zipcode}
-            onChange={handleZipcodeChange}
-            placeholder="Enter 5-digit zipcode"
-            style={{
-              padding: "8px 12px",
-              fontSize: "16px",
-              border: "2px solid #ddd",
-              borderRadius: "4px",
-              width: "120px",
-              textAlign: "center"
-            }}
-            maxLength={5}
-          />
-          <button
-            onClick={handleSearch}
-            disabled={zipcode.length !== 5 || loading}
-            style={{
-              padding: "8px 16px",
-              fontSize: "16px",
-              backgroundColor: (zipcode.length === 5 && !loading) ? "#2E7D32" : "#ccc",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: (zipcode.length === 5 && !loading) ? "pointer" : "not-allowed",
-              fontWeight: "bold"
-            }}
-          >
-            {loading ? "⏳ Searching..." : "🔍 Search"}
-          </button>
-        </div>
-        
-        <div style={{ 
-          fontSize: "14px", 
-          color: "#666", 
-          marginTop: "10px",
-          fontStyle: "italic"
-        }}>
-          Enter a 5-digit US zipcode and click Search to view real estate properties
+    <div className="app-container">
+      {/* Header */}
+      <div className="header">
+        <div className="header-content">
+          <div className="header-inner">
+            <h1 className="main-title">
+              🏠 Previous Sales Search
+            </h1>
+            
+            <div className="search-container">
+              <label className="search-label">
+                Zipcode:
+              </label>
+              <input
+                type="text"
+                value={zipcode}
+                onChange={handleZipcodeChange}
+                placeholder="Enter 5-digit zipcode"
+                className="search-input"
+                maxLength={5}
+              />
+              <button
+                onClick={handleSearch}
+                disabled={zipcode.length !== 5 || loading}
+                className={`search-button ${zipcode.length === 5 && !loading ? 'search-button-active' : 'search-button-disabled'}`}
+              >
+                {loading ? "⏳ Searching..." : "🔍 Search"}
+              </button>
+            </div>
+            
+            <p className="search-description">
+              Enter a 5-digit US zipcode and click Search to view previous property sales
+            </p>
+          </div>
         </div>
       </div>
-      
-      <MapView 
-        zipcode={zipcode}
-        onSearch={handleSearch}
-        properties={properties}
-        loading={loading}
-        error={error}
-      />
+
+      {/* Results */}
+      <div className="results-container">
+        <PropertyGrid 
+          properties={properties}
+          loading={loading}
+          error={error}
+          searchResults={searchResults}
+          onRetry={handleSearch}
+        />
+      </div>
     </div>
   );
 }

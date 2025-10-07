@@ -1,6 +1,7 @@
 import { useState } from "react";
 import './App.css'
 import PropertyGrid from "./components/PropertyGrid";
+import PropertyFilters from "./components/PropertyFilters";
 import { Property } from "../../../types/property";
 
 export default function App() {
@@ -11,8 +12,8 @@ export default function App() {
   const [searchResults, setSearchResults] = useState<{
     zipcode: string;
     count: number;
-    averagePrice: number;
   } | null>(null);
+  const [filters, setFilters] = useState<any>({});
 
   const handleZipcodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -31,8 +32,18 @@ export default function App() {
     setSearchResults(null);
     
     try {
-      console.log(`🔍 Searching for properties in zipcode: ${zipcode}`);
-      const response = await fetch(`http://localhost:8080/api/previous-sales/${zipcode}`);
+      console.log(`🔍 Searching for properties in zipcode: ${zipcode} with filters:`, filters);
+      
+      // Build query string with filters
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) queryParams.append(key, value.toString());
+      });
+      
+      const queryString = queryParams.toString();
+      const url = `http://localhost:8080/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;
+      
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.success && data.properties) {
@@ -41,7 +52,6 @@ export default function App() {
         setSearchResults({
           zipcode: zipcode,
           count: data.count || data.properties.length,
-          averagePrice: data.averagePrice || 0
         });
       } else {
         console.error(`❌ Failed to fetch properties: ${data.message}`);
@@ -53,6 +63,14 @@ export default function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
   };
 
   return (
@@ -91,6 +109,14 @@ export default function App() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="filters-section">
+        <PropertyFilters 
+          onFiltersChange={handleFiltersChange}
+          onClearFilters={handleClearFilters}
+        />
       </div>
 
       {/* Results */}

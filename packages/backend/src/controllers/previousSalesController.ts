@@ -4,6 +4,7 @@ import { getPreviousSalesByZip } from '../services/previousSalesService';
 export async function fetchPreviousSales(req: Request, res: Response): Promise<void> {
   try {
     const { zipcode } = req.params;
+    const query = req.query;
     
     if (!zipcode) {
       res.status(400).json({ 
@@ -13,9 +14,28 @@ export async function fetchPreviousSales(req: Request, res: Response): Promise<v
       return;
     }
 
-    console.log(`📡 Fetching previous sales for zipcode: ${zipcode}`);
+    // Parse filter parameters
+    const filters = {
+      minPrice: query.minPrice ? Number(query.minPrice) : undefined,
+      maxPrice: query.maxPrice ? Number(query.maxPrice) : undefined,
+      minBeds: query.minBeds ? Number(query.minBeds) : undefined,
+      maxBeds: query.maxBeds ? Number(query.maxBeds) : undefined,
+      minSqft: query.minSqft ? Number(query.minSqft) : undefined,
+      maxSqft: query.maxSqft ? Number(query.maxSqft) : undefined,
+      yearBuiltFrom: query.yearBuiltFrom ? Number(query.yearBuiltFrom) : undefined,
+      yearBuiltTo: query.yearBuiltTo ? Number(query.yearBuiltTo) : undefined,
+    };
+
+    // Remove undefined values
+    Object.keys(filters).forEach(key => {
+      if (filters[key as keyof typeof filters] === undefined) {
+        delete filters[key as keyof typeof filters];
+      }
+    });
+
+    console.log(`📡 Fetching previous sales for zipcode: ${zipcode} with filters:`, filters);
     
-    const properties = await getPreviousSalesByZip(zipcode);
+    const properties = await getPreviousSalesByZip(zipcode, filters);
     
     res.status(200).json({ 
       success: true, 

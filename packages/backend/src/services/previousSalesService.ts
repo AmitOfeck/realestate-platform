@@ -2,7 +2,19 @@ import axios from 'axios';
 import { Property } from '../types/property';
 import { PreviousSaleModel } from '../models/previousSalesModel';
 
-export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]> {
+// Filter interface for property filtering
+interface SaleFilters {
+  minPrice?: number;
+  maxPrice?: number;
+  minBeds?: number;
+  maxBeds?: number;
+  minSqft?: number;
+  maxSqft?: number;
+  yearBuiltFrom?: number;
+  yearBuiltTo?: number;
+}
+
+export async function getPreviousSalesByZip(zipcode: string, filters?: SaleFilters): Promise<Property[]> {
   // Validate zipcode
   if (!/^\d{5}$/.test(zipcode)) {
     throw new Error('Invalid zipcode format. Must be 5 digits.');
@@ -10,9 +22,9 @@ export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]
 
   try {
     // Check if we already have data for this zipcode in database
-    const existingData = await getExistingData(zipcode);
+    const existingData = await getExistingData(zipcode, filters);
     if (existingData.length > 0) {
-      console.log(`📦 Found ${existingData.length} existing properties for zipcode ${zipcode}`);
+      console.log(`📦 Found ${existingData.length} filtered properties for zipcode ${zipcode}`);
       return existingData;
     }
 
@@ -23,7 +35,9 @@ export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]
     // Save to database for future queries
     await saveToDatabase(freshData, zipcode);
     
-    return freshData;
+    // Apply filters to fresh data
+    const filteredData = applyFilters(freshData, filters);
+    return filteredData;
 
   } catch (error) {
     console.error(`❌ Error fetching previous sales for zipcode ${zipcode}:`, error);
@@ -31,18 +45,75 @@ export async function getPreviousSalesByZip(zipcode: string): Promise<Property[]
   }
 }
 
-async function getExistingData(zipcode: string): Promise<Property[]> {
+async function getExistingData(zipcode: string, filters?: SaleFilters): Promise<Property[]> {
   try {
-    // Use zipcode index for fast query
-    const existingProperties = await PreviousSaleModel.find({
-      addressLine2: { $regex: zipcode, $options: 'i' }
-    }).sort({ saleDate: -1 });
+    // Build MongoDB query with filters using indexes
+    const query: any = { 
+      addressLine2: { $regex: zipcode, $options: 'i' } 
+    };
 
-    return existingProperties.map(doc => doc.toObject());
+    // Add price filters
+    if (filters?.minPrice || filters?.maxPrice) {
+      query.price = {};
+      if (filters.minPrice) query.price.$gte = filters.minPrice;
+      if (filters.maxPrice) query.price.$lte = filters.maxPrice;
+    }
+
+    // Add bedroom filters
+    if (filters?.minBeds || filters?.maxBeds) {
+      query.bedrooms = {};
+      if (filters.minBeds) query.bedrooms.$gte = filters.minBeds;
+      if (filters.maxBeds) query.bedrooms.$lte = filters.maxBeds;
+    }
+
+    // Add sqft filters
+    if (filters?.minSqft || filters?.maxSqft) {
+      query.sqft = {};
+      if (filters.minSqft) query.sqft.$gte = filters.minSqft;
+      if (filters.maxSqft) query.sqft.$lte = filters.maxSqft;
+    }
+
+    // Add year built filters
+    if (filters?.yearBuiltFrom || filters?.yearBuiltTo) {
+      query.yearBuilt = {};
+      if (filters.yearBuiltFrom) query.yearBuilt.$gte = filters.yearBuiltFrom;
+      if (filters.yearBuiltTo) query.yearBuilt.$lte = filters.yearBuiltTo;
+    }
+
+    const existingProperties = await PreviousSaleModel.find(query)
+      .sort({ saleDate: -1 })
+      .limit(50)
+      .lean();
+
+    return existingProperties;
   } catch (error) {
     console.warn(`⚠️ Error reading existing data for zipcode ${zipcode}:`, error);
     return [];
   }
+}
+
+function applyFilters(properties: Property[], filters?: SaleFilters): Property[] {
+  if (!filters) return properties;
+
+  return properties.filter(property => {
+    // Price filter
+    if (filters.minPrice && property.price && property.price < filters.minPrice) return false;
+    if (filters.maxPrice && property.price && property.price > filters.maxPrice) return false;
+
+    // Bedroom filter
+    if (filters.minBeds && property.bedrooms && property.bedrooms < filters.minBeds) return false;
+    if (filters.maxBeds && property.bedrooms && property.bedrooms > filters.maxBeds) return false;
+
+    // Sqft filter
+    if (filters.minSqft && property.sqft && property.sqft < filters.minSqft) return false;
+    if (filters.maxSqft && property.sqft && property.sqft > filters.maxSqft) return false;
+
+    // Year built filter
+    if (filters.yearBuiltFrom && property.yearBuilt && property.yearBuilt < filters.yearBuiltFrom) return false;
+    if (filters.yearBuiltTo && property.yearBuilt && property.yearBuilt > filters.yearBuiltTo) return false;
+
+    return true;
+  });
 }
 
 async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {

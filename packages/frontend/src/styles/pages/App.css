@@ -1,128 +1,289 @@
-/* App Container */
+/* App Container - Enhanced Modern Design */
 .app-container {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  position: relative;
+}
+
+.app-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(5, 150, 105, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* Header Styles */
 .header {
-  background-color: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  position: relative;
+  z-index: 1;
 }
 
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
 }
 
 .header-inner {
-  padding: 2rem 0;
+  padding: 3rem 0;
   text-align: center;
+  position: relative;
 }
 
 .main-title {
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 2.75rem;
+  font-weight: 800;
   color: #111827;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #3b82f6, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.025em;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .search-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .search-label {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #374151;
+  letter-spacing: -0.025em;
 }
 
 .search-input {
-  padding: 0.5rem 1rem;
+  padding: 1rem 1.25rem;
   font-size: 1.125rem;
-  border: 2px solid #d1d5db;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-in-out;
-  width: 180px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 220px;
+  background: white;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .search-input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15), 0 8px 24px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
 }
 
 .search-button {
-  padding: 0.6rem 1.2rem;
+  padding: 1rem 2rem;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 700;
   color: white;
-  background-color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 16px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+  letter-spacing: -0.025em;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.search-button:hover::before {
+  left: 100%;
 }
 
 .search-button:hover:not(:disabled) {
-  background-color: #2563eb;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.search-button:active:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
 .search-button-disabled {
-  background-color: #9ca3af;
+  background: linear-gradient(135deg, #9ca3af, #6b7280);
   color: white;
   cursor: not-allowed;
+  box-shadow: 0 4px 12px rgba(156, 163, 175, 0.3);
+}
+
+.search-button-active {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
 .search-description {
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 1rem;
   margin: 0;
+  font-weight: 500;
+  letter-spacing: -0.025em;
 }
 
-/* Filters Section */
-.filters-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* Map Section */
-.map-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* Results Container */
+/* Sections */
+.filters-section,
+.map-section,
 .results-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.filters-section {
+  margin-bottom: 2rem;
+}
+
+.map-section {
+  margin-bottom: 2rem;
+}
+
+.results-container {
+  margin-bottom: 3rem;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .header-content {
+    padding: 0 1rem;
+  }
+  
+  .header-inner {
+    padding: 2rem 0;
+  }
+  
   .main-title {
-    font-size: 1.5rem;
+    font-size: 2.25rem;
   }
   
   .search-container {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
   }
   
   .search-input {
     width: 100%;
-    max-width: 200px;
+    max-width: 280px;
+  }
+  
+  .search-button {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .filters-section,
+  .map-section,
+  .results-container {
+    padding: 0 1rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .main-title {
+    font-size: 2.5rem;
+  }
+  
+  .search-container {
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .main-title {
+    font-size: 2.75rem;
+  }
+  
+  .search-container {
+    gap: 1.5rem;
+  }
+}
+
+/* Loading Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth Transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Focus Management */
+.search-input:focus,
+.search-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .main-title {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: #000;
+  }
+  
+  .search-input {
+    border-width: 3px;
+  }
+  
+  .search-button {
+    border: 2px solid #000;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

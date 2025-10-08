@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "yarn install && yarn build",
+  "buildCommand": "yarn install --production=false && yarn build",
   "outputDirectory": "dist",
+  "framework": "none",
   "builds": [
     {
       "src": "dist/server.js",

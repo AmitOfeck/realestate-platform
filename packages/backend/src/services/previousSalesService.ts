@@ -16,17 +16,37 @@ interface SaleFilters {
   yearOfSaleTo?: number;
 }
 
-export async function getPreviousSalesByZip(zipcode: string, filters?: SaleFilters): Promise<Property[]> {
+// Pagination interface
+interface PaginationResult {
+  properties: Property[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    limit: number;
+  };
+}
+
+export async function getPreviousSalesByZip(
+  zipcode: string, 
+  filters?: SaleFilters, 
+  page: number = 1, 
+  limit: number = 10
+): Promise<PaginationResult> {
   // Validate zipcode
   if (!/^\d{5}$/.test(zipcode)) {
     throw new Error('Invalid zipcode format. Must be 5 digits.');
   }
 
+  // Validate pagination parameters
+  if (page < 1) page = 1;
+  if (limit < 1 || limit > 100) limit = 10;
+
   try {
     // Check if we already have data for this zipcode in database
-    const existingData = await getExistingData(zipcode, filters);
-    if (existingData.length > 0) {
-      console.log(`📦 Found ${existingData.length} filtered properties for zipcode ${zipcode}`);
+    const existingData = await getExistingDataPaginated(zipcode, filters, page, limit);
+    if (existingData.properties.length > 0) {
+      console.log(`📦 Found ${existingData.properties.length} properties for zipcode ${zipcode} (page ${page})`);
       return existingData;
     }
 
@@ -37,9 +57,11 @@ export async function getPreviousSalesByZip(zipcode: string, filters?: SaleFilte
     // Save to database for future queries
     await saveToDatabase(freshData, zipcode);
     
-    // Apply filters to fresh data
+    // Apply filters to fresh data and paginate
     const filteredData = applyFilters(freshData, filters);
-    return filteredData;
+    const paginatedData = paginateResults(filteredData, page, limit);
+    
+    return paginatedData;
 
   } catch (error) {
     console.error(`❌ Error fetching previous sales for zipcode ${zipcode}:`, error);
@@ -47,7 +69,12 @@ export async function getPreviousSalesByZip(zipcode: string, filters?: SaleFilte
   }
 }
 
-async function getExistingData(zipcode: string, filters?: SaleFilters): Promise<Property[]> {
+async function getExistingDataPaginated(
+  zipcode: string, 
+  filters?: SaleFilters, 
+  page: number = 1, 
+  limit: number = 10
+): Promise<PaginationResult> {
   try {
     // Build MongoDB query with filters using indexes
     const query: any = { 
@@ -93,15 +120,40 @@ async function getExistingData(zipcode: string, filters?: SaleFilters): Promise<
       }
     }
 
-    const existingProperties = await PreviousSaleModel.find(query)
+    // Get total count efficiently
+    const totalCount = await PreviousSaleModel.countDocuments(query);
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(totalCount / limit);
+    const skip = (page - 1) * limit;
+
+    // Get paginated results
+    const properties = await PreviousSaleModel.find(query)
       .sort({ saleDate: -1 })
-      //.limit(50)
+      .skip(skip)
+      .limit(limit)
       .lean();
 
-    return existingProperties;
+    return {
+      properties,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit
+      }
+    };
   } catch (error) {
     console.warn(`⚠️ Error reading existing data for zipcode ${zipcode}:`, error);
-    return [];
+    return {
+      properties: [],
+      pagination: {
+        currentPage: 1,
+        totalPages: 0,
+        totalCount: 0,
+        limit
+      }
+    };
   }
 }
 
@@ -137,6 +189,24 @@ function applyFilters(properties: Property[], filters?: SaleFilters): Property[]
 
     return true;
   });
+}
+
+function paginateResults(properties: Property[], page: number, limit: number): PaginationResult {
+  const totalCount = properties.length;
+  const totalPages = Math.ceil(totalCount / limit);
+  const skip = (page - 1) * limit;
+  
+  const paginatedProperties = properties.slice(skip, skip + limit);
+  
+  return {
+    properties: paginatedProperties,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalCount,
+      limit
+    }
+  };
 }
 
 async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {

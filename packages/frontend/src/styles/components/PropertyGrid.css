@@ -56,6 +56,11 @@
   font-weight: 600;
 }
 
+.page-info {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
 .property-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

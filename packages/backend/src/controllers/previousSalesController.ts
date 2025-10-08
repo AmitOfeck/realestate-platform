@@ -14,6 +14,10 @@ export async function fetchPreviousSales(req: Request, res: Response): Promise<v
       return;
     }
 
+    // Parse pagination parameters
+    const page = query.page ? Math.max(1, parseInt(query.page as string)) : 1;
+    const limit = query.limit ? Math.min(100, Math.max(1, parseInt(query.limit as string))) : 10;
+
     // Parse filter parameters
     const filters = {
       minPrice: query.minPrice ? Number(query.minPrice) : undefined,
@@ -34,15 +38,15 @@ export async function fetchPreviousSales(req: Request, res: Response): Promise<v
         delete filters[key as keyof typeof filters];
       }
     });
-
-    console.log(`📡 Fetching previous sales for zipcode: ${zipcode} with filters:`, filters);
     
-    const properties = await getPreviousSalesByZip(zipcode, filters);
+    console.log(`📡 Fetching previous sales for zipcode: ${zipcode} (page ${page}, limit ${limit}) with filters:`, filters);
+    
+    const result = await getPreviousSalesByZip(zipcode, filters, page, limit);
     
     res.status(200).json({ 
       success: true, 
-      count: properties.length,
-      properties: properties 
+      properties: result.properties,
+      pagination: result.pagination
     });
     
   } catch (error) {

@@ -1,13 +1,20 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import './styles/pages/App.css'
 import PropertyGrid from "./components/PropertyGrid";
 import PropertyFilters from "./components/PropertyFilters";
 import MapView from "./components/MapView";
 import { Property } from "../../backend/src/types/property";
 
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  limit: number;
+}
+
 export default function App() {
   const [zipcode, setZipcode] = useState("90210");
-  const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchResults, setSearchResults] = useState<{
@@ -15,63 +22,7 @@ export default function App() {
     count: number;
   } | null>(null);
   const [filters, setFilters] = useState<any>({});
-
-  // Memoized filtered properties for performance
-  const filteredProperties = useMemo(() => {
-    if (!allProperties.length || !Object.keys(filters).length) {
-      return allProperties;
-    }
-
-    return allProperties.filter(property => {
-      // Price filter
-      if (filters.minPrice && property.price && property.price < Number(filters.minPrice)) {
-        return false;
-      }
-      if (filters.maxPrice && property.price && property.price > Number(filters.maxPrice)) {
-        return false;
-      }
-
-      // Bedroom filter
-      if (filters.minBeds && property.bedrooms && property.bedrooms < Number(filters.minBeds)) {
-        return false;
-      }
-      if (filters.maxBeds && property.bedrooms && property.bedrooms > Number(filters.maxBeds)) {
-        return false;
-      }
-
-      // Sqft filter
-      if (filters.minSqft && property.sqft && property.sqft < Number(filters.minSqft)) {
-        return false;
-      }
-      if (filters.maxSqft && property.sqft && property.sqft > Number(filters.maxSqft)) {
-        return false;
-      }
-
-      // Year built filter
-      if (filters.yearBuiltFrom && property.yearBuilt && property.yearBuilt < Number(filters.yearBuiltFrom)) {
-        return false;
-      }
-      if (filters.yearBuiltTo && property.yearBuilt && property.yearBuilt > Number(filters.yearBuiltTo)) {
-        return false;
-      }
-
-      // Sale year filter
-      if (filters.yearOfSaleFrom && property.saleDate) {
-        const saleYear = new Date(property.saleDate).getFullYear();
-        if (saleYear < Number(filters.yearOfSaleFrom)) {
-          return false;
-        }
-      }
-      if (filters.yearOfSaleTo && property.saleDate) {
-        const saleYear = new Date(property.saleDate).getFullYear();
-        if (saleYear > Number(filters.yearOfSaleTo)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [allProperties, filters]);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
   const handleZipcodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -81,28 +32,36 @@ export default function App() {
     }
   }, []);
 
-  const handleSearch = useCallback(async () => {
+  const fetchProperties = useCallback(async (page: number = 1) => {
     if (zipcode.length !== 5) return;
     
     setLoading(true);
     setError(null);
-    setAllProperties([]);
-    setSearchResults(null);
     
     try {
-      console.log(`🔍 Searching for properties in zipcode: ${zipcode}`);
+      console.log(`🔍 Fetching properties for zipcode: ${zipcode} (page ${page})`);
       
-      const url = `http://localhost:8080/api/previous-sales/${zipcode}`;
+      // Build query string with filters and pagination
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) queryParams.append(key, value.toString());
+      });
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', '10');
+      
+      const queryString = queryParams.toString();
+      const url = `http://localhost:8080/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;
       
       const response = await fetch(url);
       const data = await response.json();
       
       if (data.success && data.properties) {
-        console.log(`✅ Successfully loaded ${data.properties.length} properties`);
-        setAllProperties(data.properties);
+        console.log(`✅ Successfully loaded ${data.properties.length} properties (page ${page})`);
+        setProperties(data.properties);
+        setPagination(data.pagination);
         setSearchResults({
           zipcode: zipcode,
-          count: data.count || data.properties.length,
+          count: data.pagination.totalCount,
         });
       } else {
         console.error(`❌ Failed to fetch properties: ${data.message}`);
@@ -114,14 +73,33 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [zipcode]);
+  }, [zipcode, filters]);
+
+  const handleSearch = useCallback(async () => {
+    if (zipcode.length !== 5) return;
+    
+    setProperties([]);
+    setSearchResults(null);
+    setPagination(null);
+    
+    await fetchProperties(1);
+  }, [zipcode, fetchProperties]);
+
+  const handlePageChange = useCallback(async (newPage: number) => {
+    if (!pagination || newPage < 1 || newPage > pagination.totalPages) return;
+    
+    await fetchProperties(newPage);
+  }, [pagination, fetchProperties]);
 
   const handleFiltersChange = useCallback((newFilters: any) => {
     setFilters(newFilters);
+    // Reset to page 1 when filters change
+    setPagination(null);
   }, []);
 
   const handleClearFilters = useCallback(() => {
     setFilters({});
+    setPagination(null);
   }, []);
 
   return (
@@ -173,7 +151,7 @@ export default function App() {
       {/* Map View */}
       <div className="map-section">
         <MapView 
-          properties={filteredProperties}
+          properties={properties}
           loading={loading}
           error={error}
         />
@@ -182,11 +160,13 @@ export default function App() {
       {/* Results */}
       <div className="results-container">
         <PropertyGrid 
-          properties={filteredProperties}
+          properties={properties}
           loading={loading}
           error={error}
           searchResults={searchResults}
+          pagination={pagination}
           onRetry={handleSearch}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

@@ -1,6 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Property } from "../../../backend/src/types/property";
 import '../styles/components/PropertyGrid.css';
+
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  limit: number;
+}
 
 interface PropertyGridProps {
   properties: Property[];
@@ -10,20 +17,20 @@ interface PropertyGridProps {
     zipcode: string;
     count: number;
   } | null;
+  pagination: PaginationInfo | null;
   onRetry: () => void;
+  onPageChange: (page: number) => void;
 }
 
 interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
+  pagination: PaginationInfo;
   onPageChange: (page: number) => void;
-  totalItems: number;
-  itemsPerPage: number;
 }
 
-function Pagination({ currentPage, totalPages, onPageChange, totalItems, itemsPerPage }: PaginationProps) {
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+function Pagination({ pagination, onPageChange }: PaginationProps) {
+  const { currentPage, totalPages, totalCount, limit } = pagination;
+  const startItem = (currentPage - 1) * limit + 1;
+  const endItem = Math.min(currentPage * limit, totalCount);
 
   const getPageNumbers = () => {
     const pages = [];
@@ -92,7 +99,7 @@ function Pagination({ currentPage, totalPages, onPageChange, totalItems, itemsPe
       </button>
       
       <div className="pagination-info">
-        Showing {startItem}-{endItem} of {totalItems} properties
+        Showing {startItem}-{endItem} of {totalCount} properties
       </div>
     </div>
   );
@@ -103,15 +110,10 @@ export default function PropertyGrid({
   loading, 
   error, 
   searchResults, 
-  onRetry 
+  pagination,
+  onRetry,
+  onPageChange
 }: PropertyGridProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
-
-  // Reset pagination when properties change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [properties]);
 
   const formatPrice = useMemo(() => (price: number | null): string => {
     if (!price) return 'Price not available';
@@ -192,12 +194,6 @@ export default function PropertyGrid({
     );
   }
 
-  // Calculate pagination
-  const totalPages = Math.ceil(properties.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProperties = properties.slice(startIndex, endIndex);
-
   return (
     <div className="results-section">
       {/* Results Header */}
@@ -206,13 +202,18 @@ export default function PropertyGrid({
           Previous Sales in {searchResults.zipcode}
         </h2>
         <p className="results-count">
-          Found {properties.length} property{properties.length !== 1 ? 'ies' : ''}
+          Found {searchResults.count} property{searchResults.count !== 1 ? 'ies' : ''}
+          {pagination && (
+            <span className="page-info">
+              {' '}• Page {pagination.currentPage} of {pagination.totalPages}
+            </span>
+          )}
         </p>
       </div>
 
       {/* Property Grid */}
       <div className="property-grid">
-        {currentProperties.map((property, index) => (
+        {properties.map((property, index) => (
           <div 
             key={property.id} 
             className="property-card"
@@ -266,13 +267,12 @@ export default function PropertyGrid({
       </div>
 
       {/* Pagination */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        totalItems={properties.length}
-        itemsPerPage={itemsPerPage}
-      />
+      {pagination && (
+        <Pagination
+          pagination={pagination}
+          onPageChange={onPageChange}
+        />
+      )}
     </div>
   );
 }

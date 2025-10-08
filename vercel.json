@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd packages/backend && npm run build",
+  "buildCommand": "cd packages/backend && yarn build",
   "outputDirectory": "packages/backend/dist",
   "builds": [
     {

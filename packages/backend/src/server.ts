@@ -3,7 +3,7 @@ import fs from 'fs';
 import app from './app';
 import { connectDB, isConnected } from './config/db';
 
-// Load environment variables dynamically
+// Load environment variables dynamically 
 const env = process.env.NODE_ENV || 'development';
 const envFile = env === 'production' ? '.env.production' : '.env.local';
 

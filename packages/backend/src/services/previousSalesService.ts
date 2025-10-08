@@ -31,7 +31,7 @@ export async function getPreviousSalesByZip(
   zipcode: string, 
   filters?: SaleFilters, 
   page: number = 1, 
-  limit: number = 10
+  limit: number = 12
 ): Promise<PaginationResult> {
   // Validate zipcode
   if (!/^\d{5}$/.test(zipcode)) {
@@ -40,7 +40,7 @@ export async function getPreviousSalesByZip(
 
   // Validate pagination parameters
   if (page < 1) page = 1;
-  if (limit < 1 || limit > 100) limit = 10;
+  if (limit < 1 || limit > 100) limit = 12;
 
   try {
     // Check if we already have data for this zipcode in database

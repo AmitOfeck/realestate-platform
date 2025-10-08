@@ -16,7 +16,7 @@ export async function fetchPreviousSales(req: Request, res: Response): Promise<v
 
     // Parse pagination parameters
     const page = query.page ? Math.max(1, parseInt(query.page as string)) : 1;
-    const limit = query.limit ? Math.min(100, Math.max(1, parseInt(query.limit as string))) : 10;
+    const limit = query.limit ? Math.min(100, Math.max(1, parseInt(query.limit as string))) : 12;
 
     // Parse filter parameters
     const filters = {

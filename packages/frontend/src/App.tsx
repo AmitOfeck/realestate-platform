@@ -47,7 +47,7 @@ export default function App() {
         if (value) queryParams.append(key, value.toString());
       });
       queryParams.append('page', page.toString());
-      queryParams.append('limit', '10');
+      queryParams.append('limit', '12');
       
       const queryString = queryParams.toString();
       const url = `http://localhost:8080/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;

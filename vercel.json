@@ -2,7 +2,6 @@
   "version": 2,
   "buildCommand": "cd packages/backend && cp .env.production .env && npm run build",
   "outputDirectory": "packages/backend/dist",
-  "framework": "none",
   "builds": [
     {
       "src": "packages/backend/dist/server.js",

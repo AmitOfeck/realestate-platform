@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "yarn install && cd packages/backend && yarn build",
+  "buildCommand": "cd packages/backend && yarn install && yarn build",
   "outputDirectory": "packages/backend/dist",
   "builds": [
     {

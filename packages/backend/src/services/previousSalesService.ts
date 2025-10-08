@@ -1,6 +1,11 @@
 import axios from 'axios';
 import { Property } from '../types/property';
-import { PreviousSaleModel, ZipcodeMetadataModel } from '../models/previousSalesModel';
+import { PreviousSaleModel } from '../models/previousSalesModel';
+import { 
+  getLastFetchDate, 
+  updateLastFetchDate, 
+  updateTotalPropertiesCount 
+} from './metadataService';
 
 // Filter interface for property filtering
 interface SaleFilters {
@@ -223,36 +228,6 @@ function paginateResults(properties: Property[], page: number, limit: number): P
 }
 
 
-// Helper function to get last fetch date for a zipcode
-async function getLastFetchDate(zipcode: string): Promise<Date | null> {
-  try {
-    const metadata = await ZipcodeMetadataModel.findOne({ zipcode });
-    return metadata ? metadata.lastFetchDate : null;
-  } catch (error) {
-    console.warn(`⚠️ Error getting last fetch date for zipcode ${zipcode}:`, error);
-    return null;
-  }
-}
-
-// Helper function to update last fetch date for a zipcode
-async function updateLastFetchDate(zipcode: string, fetchDate: Date): Promise<void> {
-  try {
-    await ZipcodeMetadataModel.findOneAndUpdate(
-      { zipcode },
-      { 
-        zipcode,
-        lastFetchDate: fetchDate,
-        lastApiCallDate: fetchDate,
-        $inc: { totalPropertiesCount: 0 } // This will be updated when we save new houses
-      },
-      { upsert: true, new: true }
-    );
-    console.log(`📅 Updated last fetch date for zipcode ${zipcode} to ${fetchDate.toISOString()}`);
-  } catch (error) {
-    console.warn(`⚠️ Error updating last fetch date for zipcode ${zipcode}:`, error);
-  }
-}
-
 // Helper function to fetch only new houses since last fetch date
 async function fetchNewHousesSince(zipcode: string, lastFetchDate: Date | null): Promise<Property[]> {
   const API_KEY = process.env.ATTOM_API_KEY;
@@ -345,15 +320,11 @@ async function saveNewHouses(newHouses: Property[], zipcode: string): Promise<vo
 
     const result = await PreviousSaleModel.bulkWrite(bulkOps);
     
-    // Update metadata with new count
-    await ZipcodeMetadataModel.findOneAndUpdate(
-      { zipcode },
-      { $inc: { totalPropertiesCount: result.upsertedCount } },
-      { upsert: true }
-    );
-    
-    console.log(`💾 Saved ${result.upsertedCount} new properties for zipcode ${zipcode}`);
-  } catch (error) {
-    console.warn(`⚠️ Error saving new houses for zipcode ${zipcode}:`, error);
-  }
-}
+            // Update metadata with new count
+            await updateTotalPropertiesCount(zipcode, result.upsertedCount);
+            
+            console.log(`💾 Saved ${result.upsertedCount} new properties for zipcode ${zipcode}`);
+          } catch (error) {
+            console.warn(`⚠️ Error saving new houses for zipcode ${zipcode}:`, error);
+          }
+        }

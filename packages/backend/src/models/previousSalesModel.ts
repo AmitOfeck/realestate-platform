@@ -52,21 +52,4 @@ previousSaleSchema.index({ addressLine2: 1, sqft: 1 }); // Legacy Zipcode + Sqft
 previousSaleSchema.index({ addressLine2: 1, saleDate: -1 }); // Legacy Zipcode + Sale Date
 previousSaleSchema.index({ addressLine2: 1, yearBuilt: 1 }); // Legacy Zipcode + Year Built
 
-// Metadata schema for tracking fetch dates per zipcode
-const zipcodeMetadataSchema = new mongoose.Schema({
-  zipcode: { type: String, required: true, unique: true },
-  lastFetchDate: { type: Date, required: true },
-  totalPropertiesCount: { type: Number, default: 0 },
-  lastApiCallDate: { type: Date, required: true },
-}, {
-  timestamps: true,
-  collection: 'zipcodeMetadata'
-});
-
-// Indexes for metadata
-zipcodeMetadataSchema.index({ zipcode: 1 }, { unique: true });
-zipcodeMetadataSchema.index({ lastFetchDate: 1 });
-zipcodeMetadataSchema.index({ lastApiCallDate: 1 });
-
 export const PreviousSaleModel = mongoose.model<Property>('PreviousSale', previousSaleSchema);
-export const ZipcodeMetadataModel = mongoose.model('ZipcodeMetadata', zipcodeMetadataSchema);

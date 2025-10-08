@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Property } from '../types/property';
-import { PreviousSaleModel } from '../models/previousSalesModel';
+import { PreviousSaleModel, ZipcodeMetadataModel } from '../models/previousSalesModel';
 
 // Filter interface for property filtering
 interface SaleFilters {
@@ -43,25 +43,38 @@ export async function getPreviousSalesByZip(
   if (limit < 1 || limit > 100) limit = 12;
 
   try {
-    // Check if we already have data for this zipcode in database
-    const existingData = await getExistingDataPaginated(zipcode, filters, page, limit);
-    if (existingData.properties.length > 0) {
-      console.log(`📦 Found ${existingData.properties.length} properties for zipcode ${zipcode} (page ${page})`);
-      return existingData;
+    // Check if we need incremental update
+    const lastFetchDate = await getLastFetchDate(zipcode);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const needsUpdate = !lastFetchDate || lastFetchDate < sevenDaysAgo;
+
+    if (needsUpdate) {
+      console.log(`🔄 Data for zipcode ${zipcode} needs update (last fetch: ${lastFetchDate || 'never'})`);
+      
+      // Fetch only NEW houses since last fetch
+      const newHouses = await fetchNewHousesSince(zipcode, lastFetchDate);
+      
+      if (newHouses.length > 0) {
+        // Save only new houses to database
+        await saveNewHouses(newHouses, zipcode);
+        
+        // Update last fetch date
+        await updateLastFetchDate(zipcode, new Date());
+        
+        console.log(`✨ Added ${newHouses.length} new properties for zipcode ${zipcode}`);
+      } else {
+        console.log(`📭 No new properties found for zipcode ${zipcode}`);
+        // Still update the fetch date to avoid repeated API calls
+        await updateLastFetchDate(zipcode, new Date());
+      }
+    } else {
+      console.log(`📦 Using cached data for zipcode ${zipcode} (last fetch: ${lastFetchDate})`);
     }
 
-    // No existing data - fetch from ATTOM API
-    console.log(`🌐 No existing data for zipcode ${zipcode} - fetching from ATTOM API`);
-    const freshData = await fetchFromAttomAPI(zipcode);
+    // Get existing data (now includes any new houses)
+    const existingData = await getExistingDataPaginated(zipcode, filters, page, limit);
     
-    // Save to database for future queries
-    await saveToDatabase(freshData, zipcode);
-    
-    // Apply filters to fresh data and paginate
-    const filteredData = applyFilters(freshData, filters);
-    const paginatedData = paginateResults(filteredData, page, limit);
-    
-    return paginatedData;
+    return existingData;
 
   } catch (error) {
     console.error(`❌ Error fetching previous sales for zipcode ${zipcode}:`, error);
@@ -73,12 +86,12 @@ async function getExistingDataPaginated(
   zipcode: string, 
   filters?: SaleFilters, 
   page: number = 1, 
-  limit: number = 10
+  limit: number = 12
 ): Promise<PaginationResult> {
   try {
     // Build MongoDB query with filters using indexes
     const query: any = { 
-      addressLine2: { $regex: zipcode, $options: 'i' } 
+      zipcode: zipcode // Use new zipcode field for efficient queries
     };
 
     // Add price filters
@@ -209,7 +222,39 @@ function paginateResults(properties: Property[], page: number, limit: number): P
   };
 }
 
-async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
+
+// Helper function to get last fetch date for a zipcode
+async function getLastFetchDate(zipcode: string): Promise<Date | null> {
+  try {
+    const metadata = await ZipcodeMetadataModel.findOne({ zipcode });
+    return metadata ? metadata.lastFetchDate : null;
+  } catch (error) {
+    console.warn(`⚠️ Error getting last fetch date for zipcode ${zipcode}:`, error);
+    return null;
+  }
+}
+
+// Helper function to update last fetch date for a zipcode
+async function updateLastFetchDate(zipcode: string, fetchDate: Date): Promise<void> {
+  try {
+    await ZipcodeMetadataModel.findOneAndUpdate(
+      { zipcode },
+      { 
+        zipcode,
+        lastFetchDate: fetchDate,
+        lastApiCallDate: fetchDate,
+        $inc: { totalPropertiesCount: 0 } // This will be updated when we save new houses
+      },
+      { upsert: true, new: true }
+    );
+    console.log(`📅 Updated last fetch date for zipcode ${zipcode} to ${fetchDate.toISOString()}`);
+  } catch (error) {
+    console.warn(`⚠️ Error updating last fetch date for zipcode ${zipcode}:`, error);
+  }
+}
+
+// Helper function to fetch only new houses since last fetch date
+async function fetchNewHousesSince(zipcode: string, lastFetchDate: Date | null): Promise<Property[]> {
   const API_KEY = process.env.ATTOM_API_KEY;
   const BASE_URL = process.env.ATTOM_BASE_URL;
 
@@ -217,9 +262,18 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
     throw new Error('Missing ATTOM API configuration');
   }
 
-  const url = `${BASE_URL}/sale/snapshot?postalcode=${zipcode}&startSaleSearchDate=2022/01/01&endSaleSearchDate=2025/12/31&pagesize=100`;
+  // Format date for API call
+  let startDate = '2022/01/01'; // Default start date
+  if (lastFetchDate) {
+    const year = lastFetchDate.getFullYear();
+    const month = String(lastFetchDate.getMonth() + 1).padStart(2, '0');
+    const day = String(lastFetchDate.getDate()).padStart(2, '0');
+    startDate = `${year}/${month}/${day}`;
+  }
+
+  const url = `${BASE_URL}/sale/snapshot?postalcode=${zipcode}&startSaleSearchDate=${startDate}&endSaleSearchDate=2025/12/31&pagesize=100`;
   
-  console.log(`📡 Making API call to ATTOM for zipcode: ${zipcode}`);
+  console.log(`📡 Making incremental API call to ATTOM for zipcode: ${zipcode} (since ${startDate})`);
 
   const { data } = await axios.get(url, {
     headers: {
@@ -229,7 +283,7 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
     timeout: 30000
   });
 
-  console.log(`✅ ATTOM API response received: ${data.property?.length || 0} properties`);
+  console.log(`✅ ATTOM incremental API response received: ${data.property?.length || 0} properties`);
 
   const properties: Property[] = (data.property || [])
     .filter((p: any) => p.sale?.amount?.saleamt && p.location?.latitude && p.location?.longitude)
@@ -244,6 +298,7 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
         addressOneLine: p.address?.oneLine || 'Address not available',
         addressLine1: p.address?.line1 || '',
         addressLine2: p.address?.line2 || undefined,
+        zipcode: zipcode,
         price: price,
         latitude: parseFloat(p.location?.latitude) || 0,
         longitude: parseFloat(p.location?.longitude) || 0,
@@ -270,26 +325,35 @@ async function fetchFromAttomAPI(zipcode: string): Promise<Property[]> {
       return new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime();
     });
 
-  console.log(`🏠 Processed ${properties.length} properties for zipcode ${zipcode}`);
+  console.log(`🏠 Processed ${properties.length} new properties for zipcode ${zipcode}`);
   return properties;
 }
 
-async function saveToDatabase(properties: Property[], zipcode: string): Promise<void> {
+// Helper function to save only new houses to database
+async function saveNewHouses(newHouses: Property[], zipcode: string): Promise<void> {
   try {
-    // First, delete any existing properties for this zipcode to prevent duplicates
-    const deleteResult = await PreviousSaleModel.deleteMany({
-      addressLine2: { $regex: zipcode, $options: 'i' }
-    });
+    if (newHouses.length === 0) return;
+
+    // Use bulkWrite with upsert to handle duplicates efficiently
+    const bulkOps = newHouses.map(house => ({
+      updateOne: {
+        filter: { id: house.id },
+        update: { $set: house },
+        upsert: true
+      }
+    }));
+
+    const result = await PreviousSaleModel.bulkWrite(bulkOps);
     
-    if (deleteResult.deletedCount > 0) {
-      console.log(`🗑️ Deleted ${deleteResult.deletedCount} existing properties for zipcode ${zipcode}`);
-    }
+    // Update metadata with new count
+    await ZipcodeMetadataModel.findOneAndUpdate(
+      { zipcode },
+      { $inc: { totalPropertiesCount: result.upsertedCount } },
+      { upsert: true }
+    );
     
-    // Then insert all new properties
-    await PreviousSaleModel.insertMany(properties);
-    
-    console.log(`💾 Saved ${properties.length} properties for zipcode ${zipcode}`);
+    console.log(`💾 Saved ${result.upsertedCount} new properties for zipcode ${zipcode}`);
   } catch (error) {
-    console.warn(`⚠️ Error saving to database for zipcode ${zipcode}:`, error);
+    console.warn(`⚠️ Error saving new houses for zipcode ${zipcode}:`, error);
   }
 }

@@ -3,6 +3,7 @@ export interface Property {
   addressOneLine: string;
   addressLine1: string;
   addressLine2?: string;
+  zipcode: string; // Added zipcode field for efficient queries
   price: number | null;
   latitude: number;
   longitude: number;

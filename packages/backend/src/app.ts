@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express, { Application } from 'express';
 import cors from 'cors';
 import previousSalesRoutes from './routes/previousSalesRoutes';
+import metadataRoutes from './routes/metadataRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/previous-sales', previousSalesRoutes);
+app.use('/api/metadata', metadataRoutes);
 
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

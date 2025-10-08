@@ -4,6 +4,7 @@ import { getPreviousSalesByZip } from '../services/previousSalesService';
 export async function fetchPreviousSales(req: Request, res: Response): Promise<void> {
   try {
     const { zipcode } = req.params;
+    const query = req.query;
     
     if (!zipcode) {
       res.status(400).json({ 
@@ -13,14 +14,39 @@ export async function fetchPreviousSales(req: Request, res: Response): Promise<v
       return;
     }
 
-    console.log(`📡 Fetching previous sales for zipcode: ${zipcode}`);
+    // Parse pagination parameters
+    const page = query.page ? Math.max(1, parseInt(query.page as string)) : 1;
+    const limit = query.limit ? Math.min(100, Math.max(1, parseInt(query.limit as string))) : 12;
+
+    // Parse filter parameters
+    const filters = {
+      minPrice: query.minPrice ? Number(query.minPrice) : undefined,
+      maxPrice: query.maxPrice ? Number(query.maxPrice) : undefined,
+      minBeds: query.minBeds ? Number(query.minBeds) : undefined,
+      maxBeds: query.maxBeds ? Number(query.maxBeds) : undefined,
+      minSqft: query.minSqft ? Number(query.minSqft) : undefined,
+      maxSqft: query.maxSqft ? Number(query.maxSqft) : undefined,
+      yearBuiltFrom: query.yearBuiltFrom ? Number(query.yearBuiltFrom) : undefined,
+      yearBuiltTo: query.yearBuiltTo ? Number(query.yearBuiltTo) : undefined,
+      yearOfSaleFrom: query.yearOfSaleFrom ? Number(query.yearOfSaleFrom) : undefined,
+      yearOfSaleTo: query.yearOfSaleTo ? Number(query.yearOfSaleTo) : undefined,
+    };
+
+    // Remove undefined values
+    Object.keys(filters).forEach(key => {
+      if (filters[key as keyof typeof filters] === undefined) {
+        delete filters[key as keyof typeof filters];
+      }
+    });
     
-    const properties = await getPreviousSalesByZip(zipcode);
+    console.log(`📡 Fetching previous sales for zipcode: ${zipcode} (page ${page}, limit ${limit}) with filters:`, filters);
+    
+    const result = await getPreviousSalesByZip(zipcode, filters, page, limit);
     
     res.status(200).json({ 
       success: true, 
-      count: properties.length,
-      properties: properties 
+      properties: result.properties,
+      pagination: result.pagination
     });
     
   } catch (error) {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd packages/backend && cp .env.production .env && npm run build",
+  "buildCommand": "cd packages/backend && npm run build",
   "outputDirectory": "packages/backend/dist",
   "builds": [
     {

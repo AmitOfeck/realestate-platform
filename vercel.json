@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "buildCommand": "cd packages/backend && yarn install --production=false && yarn build",
+  "outputDirectory": "packages/backend/dist",
+  "builds": [
+    {
+      "src": "packages/backend/dist/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "packages/backend/dist/server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

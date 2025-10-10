@@ -16,41 +16,60 @@ if (fs.existsSync(envFile)) {
   console.log(`💡 Create ${envFile} from ${envFile}.example for local development`);
 }
 
-const PORT = process.env.PORT || 8080;
-
-const startServer = async (): Promise<void> => {
+// Initialize MongoDB connection for Vercel serverless
+const initializeDB = async () => {
   try {
-    // Connect to MongoDB
     await connectDB();
-    
-    // Verify connection
-    if (!isConnected()) {
-      throw new Error('MongoDB connection failed');
-    }
-    
-    // Start the server
-    app.listen(PORT, () => {
-      console.log(`✅ Backend running on port ${PORT}`);
-      console.log(`🌐 Previous Sales API ready at /api/previous-sales/:zipcode`);
-      console.log(`🌐 Metadata API ready at /api/metadata`);
-    });
+    console.log('✅ MongoDB initialized for serverless');
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
-    process.exit(1);
+    console.error('❌ Failed to initialize MongoDB:', error);
   }
 };
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error: Error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+// Initialize DB immediately for Vercel
+initializeDB();
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (reason: unknown) => {
-  console.error('Unhandled Rejection:', reason);
-  process.exit(1);
-});
+// Export the app for Vercel serverless
+export default app;
 
-// Start the server
-startServer();
+// Only start server locally (not in Vercel)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  const PORT = process.env.PORT || 8080;
+
+  const startServer = async (): Promise<void> => {
+    try {
+      // Connect to MongoDB
+      await connectDB();
+      
+      // Verify connection
+      if (!isConnected()) {
+        throw new Error('MongoDB connection failed');
+      }
+      
+      // Start the server
+      app.listen(PORT, () => {
+        console.log(`✅ Backend running on port ${PORT}`);
+        console.log(`🌐 Previous Sales API ready at /api/previous-sales/:zipcode`);
+        console.log(`🌐 Metadata API ready at /api/metadata`);
+      });
+    } catch (error) {
+      console.error('❌ Failed to start server:', error);
+      process.exit(1);
+    }
+  };
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error: Error) => {
+    console.error('Uncaught Exception:', error);
+    process.exit(1);
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason: unknown) => {
+    console.error('Unhandled Rejection:', reason);
+    process.exit(1);
+  });
+
+  // Start the server
+  startServer();
+}

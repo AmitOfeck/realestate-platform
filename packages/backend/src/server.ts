@@ -5,15 +5,15 @@ import { connectDB, isConnected } from './config/db';
 
 // Load environment variables dynamically
 const env = process.env.NODE_ENV || 'development';
-const envFile = env === 'production' ? '.env.production' : '.env.local';
 
-// Check if env file exists before loading
-if (fs.existsSync(envFile)) {
-  dotenv.config({ path: envFile });
-  console.log(`✅ Loaded environment from ${envFile}`);
+// Only load .env files in development
+if (env === 'development' && fs.existsSync('.env.local')) {
+  dotenv.config({ path: '.env.local' });
+  console.log('✅ Loaded .env.local for development');
+} else if (env === 'production') {
+  console.log('✅ Using Vercel environment variables');
 } else {
-  console.log(`⚠️ Environment file ${envFile} not found, using system environment variables`);
-  console.log(`💡 Create ${envFile} from ${envFile}.example for local development`);
+  console.log('⚠️ Using system environment variables');
 }
 
 // Initialize MongoDB connection for Vercel serverless

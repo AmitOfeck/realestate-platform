@@ -20,7 +20,7 @@ if (env === 'development' && fs.existsSync('.env.local')) {
 export default app;
 
 // Only start server locally (not in Vercel)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 8080;
 
   const startServer = async (): Promise<void> => {

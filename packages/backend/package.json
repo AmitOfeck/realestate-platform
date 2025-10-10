@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "echo '🏗️ Building backend...' && cp .env.production .env 2>/dev/null || echo '.env.production not found' && tsc",
+    "build": "tsc",
     "start": "NODE_ENV=production node dist/server.js",
     "vercel-build": "yarn install --production=false && yarn build"
   },

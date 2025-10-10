@@ -19,6 +19,13 @@ app.use('/api/metadata', metadataRoutes);
 
 // Root route handler
 app.get('/', (req, res) => {
+  console.log('here');
+  console.log("node_env", process.env.NODE_ENV);
+  console.log("process.env.MONGO_URI", process.env.MONGO_URI);
+  console.log("process.env.ATTOM_API_KEY", process.env.ATTOM_API_KEY);
+  console.log("process.env.ATTOM_BASE_URL", process.env.ATTOM_BASE_URL);
+  console.log("process.env.PORT", process.env.PORT);
+  console.log("process.env.VERCEL", process.env.VERCEL);
   res.json({ 
     success: true, 
     message: 'Real Estate Platform Backend API',

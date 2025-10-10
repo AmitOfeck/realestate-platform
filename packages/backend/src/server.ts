@@ -3,73 +3,148 @@ import fs from 'fs';
 import app from './app';
 import { connectDB, isConnected } from './config/db';
 
-// Load environment variables dynamically
-const env = process.env.NODE_ENV || 'development';
+/**
+ * Server Configuration
+ * Supports both local development and Vercel deployment
+ */
 
-// Only load .env files in development
-if (env === 'development' && fs.existsSync('.env.local')) {
-  dotenv.config({ path: '.env.local' });
-  console.log('✅ Loaded .env.local for development');
-} else if (env === 'production') {
-  console.log('✅ Using Vercel environment variables');
-} else {
-  console.log('⚠️ Using system environment variables');
+// Environment configuration
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const IS_VERCEL = process.env.VERCEL === '1';
+const PORT = process.env.PORT || 8080;
+
+/**
+ * Load environment variables based on environment
+ */
+function loadEnvironmentVariables(): void {
+  if (NODE_ENV === 'development' && !IS_VERCEL) {
+    // Load .env.local for local development
+    const envPath = '.env.local';
+    if (fs.existsSync(envPath)) {
+      dotenv.config({ path: envPath });
+      console.log('✅ Loaded .env.local for development');
+    } else {
+      console.log('⚠️ .env.local not found, using system environment variables');
+    }
+  } else if (IS_VERCEL) {
+    console.log('✅ Using Vercel environment variables');
+  } else {
+    console.log('✅ Using system environment variables');
+  }
 }
 
-// Initialize MongoDB connection for Vercel
-(async () => {
+/**
+ * Initialize MongoDB connection
+ * Optimized for serverless environments
+ */
+async function initializeDatabase(): Promise<void> {
   try {
-    console.log('🔄 Initializing MongoDB for serverless...');
+    console.log('🔄 Initializing MongoDB connection...');
     await connectDB();
-    console.log('✅ MongoDB initialized for serverless');
+    
+    if (isConnected()) {
+      console.log('✅ MongoDB connection established');
+    } else {
+      throw new Error('MongoDB connection failed');
+    }
   } catch (error) {
     console.error('❌ MongoDB initialization failed:', error);
+    throw error;
   }
-})();
+}
 
-console.log('🚀 Server.ts loaded - IIFE started');
+/**
+ * Start local development server
+ */
+async function startLocalServer(): Promise<void> {
+  try {
+    console.log('🚀 Starting local development server...');
+    
+    // Initialize database
+    await initializeDatabase();
+    
+    // Start Express server
+    const server = app.listen(PORT, () => {
+      console.log('✅ Backend server started successfully');
+      console.log(`🌐 Server running on http://localhost:${PORT}`);
+      console.log(`📊 API endpoints:`);
+      console.log(`   • GET  /api/metadata`);
+      console.log(`   • GET  /api/previous-sales/:zipcode`);
+      console.log(`   • GET  /`);
+    });
 
-// Export the app for Vercel serverless
-export default app;
-
-// Only start server locally (not in Vercel)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  const PORT = process.env.PORT || 8080;
-
-  const startServer = async (): Promise<void> => {
-    try {
-      // Connect to MongoDB
-      await connectDB();
-      
-      // Verify connection
-      if (!isConnected()) {
-        throw new Error('MongoDB connection failed');
-      }
-      
-      // Start the server
-      app.listen(PORT, () => {
-        console.log(`✅ Backend running on port ${PORT}`);
-        console.log(`🌐 Previous Sales API ready at /api/previous-sales/:zipcode`);
-        console.log(`🌐 Metadata API ready at /api/metadata`);
+    // Graceful shutdown handlers
+    const gracefulShutdown = (signal: string) => {
+      console.log(`\n🔄 Received ${signal}, shutting down gracefully...`);
+      server.close(() => {
+        console.log('✅ Server closed successfully');
+        process.exit(0);
       });
-    } catch (error) {
-      console.error('❌ Failed to start server:', error);
-      process.exit(1);
-    }
-  };
+    };
 
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+  } catch (error) {
+    console.error('❌ Failed to start local server:', error);
+    process.exit(1);
+  }
+}
+
+/**
+ * Global error handlers
+ */
+function setupErrorHandlers(): void {
   // Handle uncaught exceptions
   process.on('uncaughtException', (error: Error) => {
-    console.error('Uncaught Exception:', error);
+    console.error('💥 Uncaught Exception:', error);
     process.exit(1);
   });
 
   // Handle unhandled promise rejections
   process.on('unhandledRejection', (reason: unknown) => {
-    console.error('Unhandled Rejection:', reason);
+    console.error('💥 Unhandled Rejection:', reason);
     process.exit(1);
   });
-
-  // Start the server
-  startServer();
 }
+
+/**
+ * Main server initialization
+ */
+async function initializeServer(): Promise<void> {
+  console.log('🚀 Initializing Real Estate Platform Backend...');
+  console.log(`📋 Environment: ${NODE_ENV}`);
+  console.log(`☁️  Platform: ${IS_VERCEL ? 'Vercel' : 'Local'}`);
+  
+  // Load environment variables
+  loadEnvironmentVariables();
+  
+  // Setup error handlers
+  setupErrorHandlers();
+
+  if (IS_VERCEL) {
+    // Vercel serverless environment
+    console.log('☁️  Running in Vercel serverless mode');
+    
+    // Initialize database for serverless
+    try {
+      await initializeDatabase();
+      console.log('✅ Serverless initialization complete');
+    } catch (error) {
+      console.error('❌ Serverless initialization failed:', error);
+      // Don't exit in serverless - let Vercel handle it
+    }
+  } else {
+    // Local development environment
+    await startLocalServer();
+  }
+}
+
+// Initialize server
+initializeServer().catch((error) => {
+  console.error('💥 Server initialization failed:', error);
+  process.exit(1);
+});
+
+// Export app for Vercel serverless functions
+export default app;

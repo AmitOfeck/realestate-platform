@@ -9,6 +9,7 @@ if (!cached) {
 
 export const connectDB = async (): Promise<void> => {
   try {
+    console.log("connecting DB");
     const mongoUri = process.env.MONGO_URI;
     const env = process.env.NODE_ENV || 'development';
     

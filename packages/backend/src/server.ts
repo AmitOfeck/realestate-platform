@@ -16,35 +16,6 @@ if (env === 'development' && fs.existsSync('.env.local')) {
   console.log('⚠️ Using system environment variables');
 }
 
-// Initialize MongoDB connection for Vercel serverless
-let isDBInitialized = false;
-
-const initializeDB = async () => {
-  if (isDBInitialized) return;
-  
-  try {
-    console.log('🔄 Initializing MongoDB connection for serverless...');
-    await connectDB();
-    
-    if (isConnected()) {
-      console.log('✅ MongoDB connected successfully for serverless');
-      isDBInitialized = true;
-    } else {
-      console.error('❌ MongoDB connection failed for serverless');
-    }
-  } catch (error) {
-    console.error('❌ Failed to initialize MongoDB for serverless:', error);
-  }
-};
-
-// Middleware to ensure DB connection before handling requests
-app.use(async (req, res, next) => {
-  if (!isDBInitialized) {
-    await initializeDB();
-  }
-  next();
-});
-
 // Export the app for Vercel serverless
 export default app;
 

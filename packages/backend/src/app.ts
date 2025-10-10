@@ -36,22 +36,6 @@ app.use(async (req, res, next) => {
 app.use('/api/previous-sales', previousSalesRoutes);
 app.use('/api/metadata', metadataRoutes);
 
-// Root route handler
-app.get('/', (req, res) => {
-  console.log('🚀 Root endpoint hit - server is running');
-  console.log('📋 Environment:', process.env.NODE_ENV);
-  console.log('☁️ Vercel:', process.env.VERCEL);
-  console.log('🔗 Database connected:', isConnected());
-  
-  res.json({ 
-    success: true, 
-    message: 'Real Estate Platform Backend API',
-    endpoints: [
-      '/api/metadata',
-      '/api/previous-sales/:zipcode'
-    ]
-  });
-});
 
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

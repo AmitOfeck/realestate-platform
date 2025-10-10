@@ -3,6 +3,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import previousSalesRoutes from './routes/previousSalesRoutes';
 import metadataRoutes from './routes/metadataRoutes';
+import { connectDB, isConnected } from './config/db';
 
 // Load environment variables
 dotenv.config();
@@ -13,19 +14,35 @@ const app: Application = express();
 app.use(cors());
 app.use(express.json());
 
+// Database initialization middleware
+app.use(async (req, res, next) => {
+  try {
+    if (!isConnected()) {
+      console.log('🔄 Database not connected, initializing...');
+      await connectDB();
+      console.log('✅ Database initialized for request');
+    }
+    next();
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Database connection failed' 
+    });
+  }
+});
+
 // Routes
 app.use('/api/previous-sales', previousSalesRoutes);
 app.use('/api/metadata', metadataRoutes);
 
 // Root route handler
 app.get('/', (req, res) => {
-  console.log('here');
-  console.log("node_env", process.env.NODE_ENV);
-  console.log("process.env.MONGO_URI", process.env.MONGO_URI);
-  console.log("process.env.ATTOM_API_KEY", process.env.ATTOM_API_KEY);
-  console.log("process.env.ATTOM_BASE_URL", process.env.ATTOM_BASE_URL);
-  console.log("process.env.PORT", process.env.PORT);
-  console.log("process.env.VERCEL", process.env.VERCEL);
+  console.log('🚀 Root endpoint hit - server is running');
+  console.log('📋 Environment:', process.env.NODE_ENV);
+  console.log('☁️ Vercel:', process.env.VERCEL);
+  console.log('🔗 Database connected:', isConnected());
+  
   res.json({ 
     success: true, 
     message: 'Real Estate Platform Backend API',

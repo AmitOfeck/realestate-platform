@@ -27,6 +27,8 @@ if (env === 'development' && fs.existsSync('.env.local')) {
   }
 })();
 
+console.log('🚀 Server.ts loaded - IIFE started');
+
 // Export the app for Vercel serverless
 export default app;
 

@@ -17,6 +17,18 @@ app.use(express.json());
 app.use('/api/previous-sales', previousSalesRoutes);
 app.use('/api/metadata', metadataRoutes);
 
+// Root route handler
+app.get('/', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Real Estate Platform Backend API',
+    endpoints: [
+      '/api/metadata',
+      '/api/previous-sales/:zipcode'
+    ]
+  });
+});
+
 // Global error handler
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Global error handler:', err);

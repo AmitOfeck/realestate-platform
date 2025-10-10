@@ -17,12 +17,23 @@ if (fs.existsSync(envFile)) {
 }
 
 // Initialize MongoDB connection for Vercel serverless
+let isDBInitialized = false;
+
 const initializeDB = async () => {
+  if (isDBInitialized) return;
+  
   try {
+    console.log('🔄 Initializing MongoDB connection for serverless...');
     await connectDB();
-    console.log('✅ MongoDB initialized for serverless');
+    
+    if (isConnected()) {
+      console.log('✅ MongoDB connected successfully for serverless');
+      isDBInitialized = true;
+    } else {
+      console.error('❌ MongoDB connection failed for serverless');
+    }
   } catch (error) {
-    console.error('❌ Failed to initialize MongoDB:', error);
+    console.error('❌ Failed to initialize MongoDB for serverless:', error);
   }
 };
 

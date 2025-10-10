@@ -37,9 +37,10 @@ const initializeDB = async () => {
   }
 };
 
-// Initialize DB immediately for Vercel
-initializeDB();
-
+// Initialize DB immediately for Vercel - THIS IS THE KEY CHANGE
+(async () => {
+  await initializeDB();
+})();
 // Export the app for Vercel serverless
 export default app;
 

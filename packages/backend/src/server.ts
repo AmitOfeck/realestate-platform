@@ -16,11 +16,22 @@ if (env === 'development' && fs.existsSync('.env.local')) {
   console.log('⚠️ Using system environment variables');
 }
 
+// Initialize MongoDB connection for Vercel
+(async () => {
+  try {
+    console.log('🔄 Initializing MongoDB for serverless...');
+    await connectDB();
+    console.log('✅ MongoDB initialized for serverless');
+  } catch (error) {
+    console.error('❌ MongoDB initialization failed:', error);
+  }
+})();
+
 // Export the app for Vercel serverless
 export default app;
 
 // Only start server locally (not in Vercel)
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   const PORT = process.env.PORT || 8080;
 
   const startServer = async (): Promise<void> => {

@@ -50,8 +50,7 @@ export default function App() {
       queryParams.append('limit', '12');
       
       const queryString = queryParams.toString();
-      const url = `http://localhost:8080/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;
-      
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;      
       const response = await fetch(url);
       const data = await response.json();
       

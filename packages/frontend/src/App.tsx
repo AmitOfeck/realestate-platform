@@ -37,6 +37,9 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleZipcodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -135,6 +138,11 @@ export default function App() {
     console.log('✅ Logged out successfully');
   }, []);
 
+  // Sidebar toggle
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(!sidebarOpen);
+  }, [sidebarOpen]);
+
   // Check for existing authentication on app load
   useEffect(() => {
     const checkAuth = async () => {
@@ -179,88 +187,99 @@ export default function App() {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Show main app if authenticated
+  // Show main app with sidebar if authenticated
   return (
     <div className="app-container">
-      {/* Header with User Info */}
-      <div className="header">
-        <div className="header-content">
-          <div className="header-inner">
-            <div className="header-top">
-              <h1 className="main-title">
-                🏠 Previous Sales Search
-              </h1>
-              
-              <div className="user-info">
-                <img 
-                  src={user?.picture} 
-                  alt={user?.name} 
-                  className="user-avatar"
-                />
-                <span className="user-name">{user?.name}</span>
-                <button onClick={handleLogout} className="logout-button">
-                  Logout
-                </button>
-              </div>
-            </div>
-            
-            <div className="search-container">
-              <label className="search-label">
-                Zipcode:
-              </label>
-              <input
-                type="text"
-                value={zipcode}
-                onChange={handleZipcodeChange}
-                placeholder="Enter 5-digit zipcode"
-                className="search-input"
-                maxLength={5}
-              />
-              <button
-                onClick={handleSearch}
-                disabled={zipcode.length !== 5 || loading}
-                className={`search-button ${zipcode.length === 5 && !loading ? 'search-button-active' : 'search-button-disabled'}`}
-              >
-                {loading ? "⏳ Searching..." : "🔍 Search"}
-              </button>
-            </div>
-            
-            <p className="search-description">
-              Enter a 5-digit US zipcode and click Search to view previous property sales
-            </p>
+      {/* Modern Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="brand">
+            <span className="brand-icon">🏠</span>
+            <span className="brand-text">Real Estate</span>
           </div>
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            <span className="hamburger"></span>
+          </button>
         </div>
-      </div>
+        
+        <div className="sidebar-content">
+          <div className="user-section">
+            <img src={user?.picture} alt={user?.name} className="user-avatar" />
+            <div className="user-info">
+              <span className="user-name">{user?.name}</span>
+              <span className="user-email">{user?.email}</span>
+            </div>
+          </div>
+          
+          <button onClick={handleLogout} className="logout-button">
+            <span className="logout-icon">🚪</span>
+            Logout
+          </button>
+        </div>
+      </aside>
 
-      {/* Filters */}
-      <div className="filters-section">
-        <PropertyFilters 
-          onFiltersChange={handleFiltersChange}
-          onClearFilters={handleClearFilters}
-        />
-      </div>
+      {/* Main Content */}
+      <main className="main-content">
+        <div className="content-header">
+          <button className="mobile-menu-toggle" onClick={toggleSidebar}>
+            <span className="hamburger"></span>
+          </button>
+          <h1 className="page-title">Previous Sales Search</h1>
+        </div>
+        
+        <div className="search-container">
+          <label className="search-label">
+            Zipcode:
+          </label>
+          <input
+            type="text"
+            value={zipcode}
+            onChange={handleZipcodeChange}
+            placeholder="Enter 5-digit zipcode"
+            className="search-input"
+            maxLength={5}
+          />
+          <button
+            onClick={handleSearch}
+            disabled={zipcode.length !== 5 || loading}
+            className={`search-button ${zipcode.length === 5 && !loading ? 'search-button-active' : 'search-button-disabled'}`}
+          >
+            {loading ? "⏳ Searching..." : "🔍 Search"}
+          </button>
+        </div>
+        
+        <p className="search-description">
+          Enter a 5-digit US zipcode and click Search to view previous property sales
+        </p>
 
-      {/* Map View */}
-      <div className="map-section">
-        <MapView 
-          properties={properties}
-          loading={loading}
-          error={error}
-        />
-      </div>
+        {/* Rest of your existing components */}
+        <div className="filters-section">
+          <PropertyFilters 
+            onFiltersChange={handleFiltersChange}
+            onClearFilters={handleClearFilters}
+          />
+        </div>
 
-      {/* Results */}
-      <div className="results-container">
-        <PropertyGrid 
-          properties={properties}
-          loading={loading}
-          error={error}
-          searchResults={searchResults}
-          pagination={pagination}
-          onRetry={handleSearch}
-          onPageChange={handlePageChange}
-        />
-      </div>
+        <div className="map-section">
+          <MapView 
+            properties={properties}
+            loading={loading}
+            error={error}
+          />
+        </div>
+
+        <div className="results-container">
+          <PropertyGrid 
+            properties={properties}
+            loading={loading}
+            error={error}
+            searchResults={searchResults}
+            pagination={pagination}
+            onRetry={handleSearch}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      </main>
     </div>
   );
 }

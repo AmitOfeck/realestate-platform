@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import './styles/pages/App.css'
 import PropertyGrid from "./components/PropertyGrid";
 import PropertyFilters from "./components/PropertyFilters";
 import MapView from "./components/MapView";
+import GoogleLogin from "./components/GoogleLogin";
 import { Property } from "../../backend/src/types/property";
 
 interface PaginationInfo {
@@ -10,6 +11,14 @@ interface PaginationInfo {
   totalPages: number;
   totalCount: number;
   limit: number;
+}
+
+// Add user interface
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
 }
 
 export default function App() {
@@ -23,6 +32,10 @@ export default function App() {
   } | null>(null);
   const [filters, setFilters] = useState<any>({});
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+
+  // Add authentication state
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleZipcodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -101,6 +114,68 @@ export default function App() {
     setPagination(null);
   }, []);
 
+  // Add authentication functions
+  const handleGoogleLoginSuccess = useCallback(async (credential: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setUser(data.user);
+        setIsAuthenticated(true);
+        localStorage.setItem('token', data.token);
+        console.log('✅ Login successful:', data.user);
+      } else {
+        console.error('❌ Login failed:', data.message);
+      }
+    } catch (error) {
+      console.error('❌ Login error:', error);
+    }
+  }, []);
+
+  const handleGoogleLoginError = useCallback((error: string) => {
+    console.error('❌ Google login error:', error);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('token');
+    console.log('✅ Logged out successfully');
+  }, []);
+
+  // Check for existing token on app load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Verify token with backend
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/auth/verify`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          setUser(data.user);
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('token');
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('token');
+      });
+    }
+  }, []);
+
   return (
     <div className="app-container">
       {/* Header */}
@@ -110,6 +185,28 @@ export default function App() {
             <h1 className="main-title">
               🏠 Previous Sales Search
             </h1>
+            
+            {/* Authentication Section */}
+            <div className="auth-section">
+              {isAuthenticated ? (
+                <div className="user-info">
+                  <img 
+                    src={user?.picture} 
+                    alt={user?.name} 
+                    className="user-avatar"
+                  />
+                  <span className="user-name">{user?.name}</span>
+                  <button onClick={handleLogout} className="logout-button">
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <GoogleLogin 
+                  onSuccess={handleGoogleLoginSuccess}
+                  onError={handleGoogleLoginError}
+                />
+              )}
+            </div>
             
             <div className="search-container">
               <label className="search-label">

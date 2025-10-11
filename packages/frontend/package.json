@@ -11,7 +11,9 @@
     "vercel-build": "npm run build"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "@react-google-maps/api": "^2.20.7",
+    "google-auth-library": "^10.4.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

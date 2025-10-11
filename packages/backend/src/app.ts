@@ -8,7 +8,7 @@ import userRoutes from './routes/userRoutes';
 import { connectDB, isConnected } from './config/db';
 
 // Load environment variables
-//dotenv.config();
+dotenv.config();
 
 const app: Application = express();
 

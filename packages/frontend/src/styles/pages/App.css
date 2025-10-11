@@ -1,3 +1,45 @@
+/* Loading Screen */
+.loading-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-screen p {
+  color: #6b7280;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Header Updates */
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
 /* App Container - Perfect Centering Fix */
 .app-container {
   min-height: 100vh;
@@ -377,8 +419,15 @@
 
 /* Responsive Authentication */
 @media (max-width: 768px) {
-  .user-info {
+  .header-top {
     flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .user-info {
+    justify-content: center;
+    flex-direction: row;
     gap: 8px;
     padding: 16px;
     text-align: center;

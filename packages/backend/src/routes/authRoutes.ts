@@ -64,10 +64,7 @@ router.post('/google', async (req, res) => {
         googleId: user.googleId,
         email: user.email,
         name: user.name,
-        picture: user.picture,
-        searchHistory: user.searchHistory.slice(0, 5), // Last 5 searches
-        favoriteProperties: user.favoriteProperties,
-        preferences: user.preferences
+        picture: user.picture
       },
       token,
       message: 'Login successful'

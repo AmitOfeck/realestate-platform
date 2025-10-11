@@ -13,11 +13,6 @@ export interface UpdateUserData {
   lastLogin?: Date;
 }
 
-export interface SearchHistoryEntry {
-  zipcode: string;
-  filters?: any;
-}
-
 class UserService {
   /**
    * Find user by Google ID
@@ -82,6 +77,7 @@ class UserService {
       if (user) {
         console.log('✅ User updated:', user.email);
       }
+
       return user;
     } catch (error) {
       console.error('Error updating user:', error);
@@ -113,140 +109,6 @@ class UserService {
       return user!;
     } catch (error) {
       console.error('❌ Error in findOrCreateUser:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Add search to user history
-   */
-  async addSearchHistory(userId: string, searchData: SearchHistoryEntry): Promise<IUser | null> {
-    try {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      // Add new search to beginning of array
-      user.searchHistory.unshift({
-        zipcode: searchData.zipcode,
-        timestamp: new Date(),
-        filters: searchData.filters
-      });
-
-      // Keep only last 50 searches
-      if (user.searchHistory.length > 50) {
-        user.searchHistory = user.searchHistory.slice(0, 50);
-      }
-
-      await user.save();
-      console.log('✅ Search history added for user:', user.email);
-      return user;
-    } catch (error) {
-      console.error('Error adding search history:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get user search history
-   */
-  async getSearchHistory(userId: string, limit: number = 20): Promise<any[]> {
-    try {
-      const user = await User.findById(userId).select('searchHistory');
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      return user.searchHistory.slice(0, limit);
-    } catch (error) {
-      console.error('Error getting search history:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Add favorite property
-   */
-  async addFavoriteProperty(userId: string, propertyId: string): Promise<IUser | null> {
-    try {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      if (!user.favoriteProperties.includes(propertyId)) {
-        user.favoriteProperties.push(propertyId);
-        await user.save();
-        console.log('✅ Property added to favorites for user:', user.email);
-      }
-
-      return user;
-    } catch (error) {
-      console.error('Error adding favorite property:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Remove favorite property
-   */
-  async removeFavoriteProperty(userId: string, propertyId: string): Promise<IUser | null> {
-    try {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      user.favoriteProperties = user.favoriteProperties.filter(id => id !== propertyId);
-      await user.save();
-      console.log('✅ Property removed from favorites for user:', user.email);
-      return user;
-    } catch (error) {
-      console.error('Error removing favorite property:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update user preferences
-   */
-  async updatePreferences(userId: string, preferences: any): Promise<IUser | null> {
-    try {
-      const user = await User.findByIdAndUpdate(
-        userId,
-        { preferences },
-        { new: true }
-      );
-
-      if (user) {
-        console.log('✅ User preferences updated:', user.email);
-      }
-      return user;
-    } catch (error) {
-      console.error('Error updating preferences:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get user statistics
-   */
-  async getUserStats(userId: string): Promise<any> {
-    try {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      return {
-        totalSearches: user.searchHistory.length,
-        favoriteProperties: user.favoriteProperties.length,
-        memberSince: user.createdAt,
-        lastLogin: user.lastLogin
-      };
-    } catch (error) {
-      console.error('Error getting user stats:', error);
       throw error;
     }
   }

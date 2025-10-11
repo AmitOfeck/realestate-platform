@@ -8,4 +8,8 @@ export default defineConfig({
       '/api': 'http://localhost:8080', 
     },
   },
+  define: {
+    // Make environment variables available
+    'process.env': process.env
+  }
 })

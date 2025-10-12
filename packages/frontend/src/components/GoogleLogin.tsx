@@ -5,7 +5,7 @@ interface GoogleLoginProps {
   onError: (error: string) => void;
 }
 
-declare global {
+declare global { 
   interface Window {
     google: any;
   }

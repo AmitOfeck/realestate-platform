@@ -22,7 +22,7 @@ interface User {
 }
 
 export default function App() {
-  const [zipcode, setZipcode] = useState("90210");
+  const [zipcode, setZipcode] = useState("");
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +160,7 @@ export default function App() {
     setProperties([]);
     setSearchResults(null);
     setPagination(null);
-    setZipcode("90210");
+        setZipcode("");
     console.log('✅ Logged out successfully');
   }, []);
 

@@ -37,122 +37,130 @@
   border-radius: 12px;
 }
 
-/* Modern Card-Style Popup */
+/* Google Maps InfoWindow Styling */
+.gm-style .gm-style-iw-c {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: hidden !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.gm-style .gm-style-iw-tc {
+  border-radius: 12px !important;
+}
+
+.gm-style .gm-style-iw-t::after {
+  background: #2563eb !important;
+}
+
+/* Style the Google Maps close button */
+.gm-style .gm-style-iw-tc button {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 24px !important;
+  height: 24px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 14px !important;
+  font-weight: 300 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.gm-style .gm-style-iw-tc button:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: white !important;
+}
+
+/* Minimal Modern Popup Card */
 .property-info-window {
-  min-width: 280px;
-  max-width: 320px;
+  min-width: 240px;
+  max-width: 280px;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(229, 231, 235, 0.3);
   position: relative;
 }
 
 .property-info-header {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-  padding: 20px;
+  background: #2563eb;
+  padding: 16px;
   color: white;
   position: relative;
 }
 
-/* Elegant close button integrated into header */
-.property-info-header::after {
-  content: '×';
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 28px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.property-info-header::after:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  transform: scale(1.05);
-}
-
 .property-info-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
   line-height: 1.3;
-  letter-spacing: -0.025em;
-  padding-right: 40px; /* Space for close button */
+  padding-right: 35px;
 }
 
 .property-info-price {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
   color: #ffffff;
-  margin: 8px 0 0 0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin: 6px 0 0 0;
 }
 
 .property-info-content {
-  padding: 20px;
-  background: rgba(248, 250, 252, 0.5);
+  padding: 16px;
+  background: #ffffff;
 }
 
 .property-info-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .property-info-detail-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
-  color: #374151;
-  font-weight: 600;
-  font-size: 12px;
-  border: 1px solid rgba(229, 231, 235, 0.3);
-  backdrop-filter: blur(10px);
+  gap: 4px;
+  padding: 6px 10px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  color: #475569;
+  font-weight: 500;
+  font-size: 11px;
+  border: 1px solid #e2e8f0;
 }
 
 .property-info-detail-icon {
-  font-size: 14px;
+  font-size: 12px;
   opacity: 0.7;
 }
 
 .property-info-date {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #6b7280;
+  gap: 6px;
+  font-size: 11px;
+  color: #64748b;
   font-weight: 500;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 10px;
-  border: 1px solid rgba(229, 231, 235, 0.2);
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   justify-content: center;
 }
 
 .property-info-date-icon {
-  font-size: 14px;
+  font-size: 12px;
   opacity: 0.6;
 }
 
@@ -210,7 +218,7 @@
   color: #dc2626;
 }
 
-/* Responsive Design */
+/* Mobile Optimization */
 @media (max-width: 768px) {
   .map-container {
     height: 300px;
@@ -222,48 +230,48 @@
   }
   
   .property-info-window {
-    min-width: 240px;
-    max-width: 280px;
+    min-width: 220px;
+    max-width: 260px;
   }
   
   .property-info-header {
-    padding: 16px;
+    padding: 14px;
   }
   
   .property-info-header::after {
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-    top: 12px;
-    right: 12px;
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    top: 10px;
+    right: 10px;
   }
   
   .property-info-title {
-    font-size: 13px;
-    padding-right: 35px;
+    font-size: 11px;
+    padding-right: 32px;
   }
   
   .property-info-price {
-    font-size: 20px;
+    font-size: 16px;
   }
   
   .property-info-content {
-    padding: 16px;
+    padding: 14px;
   }
   
   .property-info-details {
-    grid-template-columns: 1fr;
     gap: 6px;
+    margin-bottom: 10px;
   }
   
   .property-info-detail-item {
-    font-size: 11px;
-    padding: 6px 8px;
+    font-size: 10px;
+    padding: 5px 8px;
   }
   
   .property-info-date {
-    font-size: 11px;
-    padding: 8px 10px;
+    font-size: 10px;
+    padding: 6px 10px;
   }
   
   .map-loading-spinner {
@@ -337,61 +345,44 @@
   50% { background-position: -200% 0; }
 }
 
-/* Enhanced Google Maps Info Window Styling */
-.gm-style .gm-style-iw-c {
-  border-radius: 20px !important;
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.12),
-    0 0 0 1px rgba(255, 255, 255, 0.3) !important;
-  overflow: hidden !important;
-}
-
-.gm-style .gm-style-iw-d {
-  overflow: hidden !important;
-  border-radius: 20px !important;
-}
-
-.gm-style .gm-style-iw-tc {
-  border-radius: 20px !important;
-}
-
-.gm-style .gm-style-iw-t::after {
-  background: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(20px) !important;
-}
-
-/* Minimize Google Maps Close Button */
-.gm-style .gm-style-iw-tc::after {
-  content: '×' !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 12px !important;
-  font-weight: 300 !important;
-  color: #6b7280 !important;
-  background: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(229, 231, 235, 0.3) !important;
-  border-radius: 50% !important;
-  width: 20px !important;
-  height: 20px !important;
-  margin: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  backdrop-filter: blur(10px) !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-}
-
-.gm-style .gm-style-iw-tc::after:hover {
-  background: rgba(255, 255, 255, 1) !important;
-  color: #374151 !important;
-  transform: scale(1.05) !important;
-}
-
-.gm-style .gm-style-iw-tc {
-  background: transparent !important;
-  width: 20px !important;
-  height: 20px !important;
-  margin: 8px !important;
+/* Mobile Optimization */
+@media (max-width: 768px) {
+  .property-info-window {
+    min-width: 220px;
+    max-width: 260px;
+  }
+  
+  .property-info-header {
+    padding: 14px;
+  }
+  
+  .property-info-title {
+    font-size: 11px;
+    padding-right: 32px;
+  }
+  
+  .property-info-price {
+    font-size: 16px;
+  }
+  
+  .property-info-content {
+    padding: 14px;
+  }
+  
+  .property-info-details {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  
+  .property-info-detail-item {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+  
+  .property-info-date {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
 }
 
 /* Custom Marker Animation */

@@ -27,6 +27,18 @@ class UserService {
   }
 
   /**
+   * Find user by MongoDB ID
+   */
+  async findById(id: string): Promise<IUser | null> {
+    try {
+      return await User.findById(id);
+    } catch (error) {
+      console.error('Error finding user by ID:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Find user by email
    */
   async findByEmail(email: string): Promise<IUser | null> {

@@ -58,6 +58,14 @@ export default function App() {
     try {
       console.log(`🔍 Fetching properties for zipcode: ${zipcode} (page ${page})`);
       
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+      
       // Build query string with filters and pagination
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -67,8 +75,26 @@ export default function App() {
       queryParams.append('limit', '12');
       
       const queryString = queryParams.toString();
-      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;      
-      const response = await fetch(url);
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;
+      
+      // Add Authorization header with token
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        // Token is invalid or expired
+        localStorage.removeItem('token');
+        setUser(null);
+        setIsAuthenticated(false);
+        setError('Session expired. Please log in again.');
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.success && data.properties) {

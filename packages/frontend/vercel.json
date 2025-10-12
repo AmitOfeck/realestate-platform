@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && npm install && npm run build:frontend",
+  "buildCommand": "cd ../.. && yarn install && yarn build:frontend",
   "outputDirectory": "dist",
-  "installCommand": "cd ../.. && npm install",
+  "installCommand": "cd ../.. && yarn install",
   "framework": "vite",
   "env": {
     "VITE_API_URL": "https://realestate-platform-backend.vercel.app"

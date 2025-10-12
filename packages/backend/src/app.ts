@@ -1,12 +1,9 @@
-import dotenv from 'dotenv';
 import express, { Application } from 'express';
 import cors from 'cors';
 import previousSalesRoutes from './routes/previousSalesRoutes';
 import metadataRoutes from './routes/metadataRoutes';
+import authRoutes from './routes/authRoutes';
 import { connectDB, isConnected } from './config/db';
-
-// Load environment variables
-dotenv.config();
 
 const app: Application = express();
 
@@ -35,6 +32,7 @@ app.use(async (req, res, next) => {
 // Routes
 app.use('/api/previous-sales', previousSalesRoutes);
 app.use('/api/metadata', metadataRoutes);
+app.use('/api/auth', authRoutes);
 
 
 // Global error handler

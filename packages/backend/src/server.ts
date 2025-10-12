@@ -67,10 +67,6 @@ async function startLocalServer(): Promise<void> {
     const server = app.listen(PORT, () => {
       console.log('✅ Backend server started successfully');
       console.log(`🌐 Server running on http://localhost:${PORT}`);
-      console.log(`📊 API endpoints:`);
-      console.log(`   • GET  /api/metadata`);
-      console.log(`   • GET  /api/previous-sales/:zipcode`);
-      console.log(`   • GET  /`);
     });
 
     // Graceful shutdown handlers

@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import './styles/pages/App.css'
 import PropertyGrid from "./components/PropertyGrid";
 import PropertyFilters from "./components/PropertyFilters";
 import MapView from "./components/MapView";
+import LoginPage from "./components/LoginPage";
 import { Property } from "../../backend/src/types/property";
 
 interface PaginationInfo {
@@ -12,8 +13,16 @@ interface PaginationInfo {
   limit: number;
 }
 
+// Add user interface
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  picture?: string;
+}
+
 export default function App() {
-  const [zipcode, setZipcode] = useState("90210");
+  const [zipcode, setZipcode] = useState("");
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +32,14 @@ export default function App() {
   } | null>(null);
   const [filters, setFilters] = useState<any>({});
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+
+  // Authentication state
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleZipcodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -41,6 +58,14 @@ export default function App() {
     try {
       console.log(`🔍 Fetching properties for zipcode: ${zipcode} (page ${page})`);
       
+      // Get token from localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Authentication required');
+        return;
+      }
+      
       // Build query string with filters and pagination
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -50,8 +75,26 @@ export default function App() {
       queryParams.append('limit', '12');
       
       const queryString = queryParams.toString();
-      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;      
-      const response = await fetch(url);
+      const url = `${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/previous-sales/${zipcode}${queryString ? `?${queryString}` : ''}`;
+      
+      // Add Authorization header with token
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      // Handle authentication errors
+      if (response.status === 401 || response.status === 403) {
+        // Token is invalid or expired
+        localStorage.removeItem('token');
+        setUser(null);
+        setIsAuthenticated(false);
+        setError('Session expired. Please log in again.');
+        return;
+      }
+      
       const data = await response.json();
       
       if (data.success && data.properties) {
@@ -101,73 +144,168 @@ export default function App() {
     setPagination(null);
   }, []);
 
+
+  // Handle successful login
+  const handleLoginSuccess = useCallback((userData: User) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+  }, []);
+
+  // Handle logout
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('token');
+    // Reset search state
+    setProperties([]);
+    setSearchResults(null);
+    setPagination(null);
+        setZipcode("");
+    console.log('✅ Logged out successfully');
+  }, []);
+
+  // Sidebar toggle
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(!sidebarOpen);
+  }, [sidebarOpen]);
+
+  // Check for existing authentication on app load
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/auth/verify`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            setUser(data.user);
+            setIsAuthenticated(true);
+          } else {
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          localStorage.removeItem('token');
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Show main app with sidebar if authenticated
   return (
     <div className="app-container">
-      {/* Header */}
-      <div className="header">
-        <div className="header-content">
-          <div className="header-inner">
-            <h1 className="main-title">
-              🏠 Previous Sales Search
-            </h1>
-            
-            <div className="search-container">
-              <label className="search-label">
-                Zipcode:
-              </label>
-              <input
-                type="text"
-                value={zipcode}
-                onChange={handleZipcodeChange}
-                placeholder="Enter 5-digit zipcode"
-                className="search-input"
-                maxLength={5}
-              />
-              <button
-                onClick={handleSearch}
-                disabled={zipcode.length !== 5 || loading}
-                className={`search-button ${zipcode.length === 5 && !loading ? 'search-button-active' : 'search-button-disabled'}`}
-              >
-                {loading ? "⏳ Searching..." : "🔍 Search"}
-              </button>
-            </div>
-            
-            <p className="search-description">
-              Enter a 5-digit US zipcode and click Search to view previous property sales
-            </p>
+      {/* Modern Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="brand">
+            <span className="brand-icon">🏠</span>
+            <span className="brand-text">Real Estate</span>
           </div>
+          <button className="sidebar-toggle" onClick={toggleSidebar}>
+            <span className="hamburger"></span>
+          </button>
         </div>
-      </div>
+        
+        <div className="sidebar-content">
+          <div className="user-section">
+            <img src={user?.picture} alt={user?.name} className="user-avatar" />
+            <div className="user-info">
+              <span className="user-name">{user?.name}</span>
+              <span className="user-email">{user?.email}</span>
+            </div>
+          </div>
+          
+          <button onClick={handleLogout} className="logout-button">
+            <span className="logout-icon">🚪</span>
+            Logout
+          </button>
+        </div>
+      </aside>
 
-      {/* Filters */}
-      <div className="filters-section">
-        <PropertyFilters 
-          onFiltersChange={handleFiltersChange}
-          onClearFilters={handleClearFilters}
-        />
-      </div>
+      {/* Main Content */}
+      <main className="main-content">
+        <div className="content-header">
+          <button className="mobile-menu-toggle" onClick={toggleSidebar}>
+            <span className="hamburger"></span>
+          </button>
+          <h1 className="page-title">Previous Sales Search</h1>
+        </div>
+        
+        <div className="search-container">
+          <label className="search-label">
+            Zipcode:
+          </label>
+          <input
+            type="text"
+            value={zipcode}
+            onChange={handleZipcodeChange}
+            placeholder="Enter 5-digit zipcode"
+            className="search-input"
+            maxLength={5}
+          />
+          <button
+            onClick={handleSearch}
+            disabled={zipcode.length !== 5 || loading}
+            className={`search-button ${zipcode.length === 5 && !loading ? 'search-button-active' : 'search-button-disabled'}`}
+          >
+            {loading ? "⏳ Searching..." : "🔍 Search"}
+          </button>
+        </div>
+        
+        <p className="search-description">
+          Enter a 5-digit US zipcode and click Search to view previous property sales
+        </p>
 
-      {/* Map View */}
-      <div className="map-section">
-        <MapView 
-          properties={properties}
-          loading={loading}
-          error={error}
-        />
-      </div>
+        {/* Rest of your existing components */}
+        <div className="filters-section">
+          <PropertyFilters 
+            onFiltersChange={handleFiltersChange}
+            onClearFilters={handleClearFilters}
+          />
+        </div>
 
-      {/* Results */}
-      <div className="results-container">
-        <PropertyGrid 
-          properties={properties}
-          loading={loading}
-          error={error}
-          searchResults={searchResults}
-          pagination={pagination}
-          onRetry={handleSearch}
-          onPageChange={handlePageChange}
-        />
-      </div>
+        <div className="map-section">
+          <MapView 
+            properties={properties}
+            loading={loading}
+            error={error}
+          />
+        </div>
+
+        <div className="results-container">
+          <PropertyGrid 
+            properties={properties}
+            loading={loading}
+            error={error}
+            searchResults={searchResults}
+            pagination={pagination}
+            onRetry={handleSearch}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      </main>
     </div>
   );
 }

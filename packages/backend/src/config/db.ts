@@ -10,6 +10,10 @@ if (!cached) {
 export const connectDB = async (): Promise<void> => {
   try {
     console.log("connecting DB");
+    console.log("🔍 MONGO_URI:", process.env.MONGO_URI);
+    console.log("🔍 NODE_ENV:", process.env.NODE_ENV);
+    console.log("🔍 All env vars:", Object.keys(process.env).filter(key => key.includes('MONGO') || key.includes('NODE')));
+    
     const mongoUri = process.env.MONGO_URI;
     const env = process.env.NODE_ENV || 'development';
     

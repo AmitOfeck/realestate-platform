@@ -172,6 +172,11 @@ export default function MapView({ properties, error }: MapViewProps) {
     }
   }, [map, properties]);
 
+  // Clear selected property when properties change (page navigation)
+  React.useEffect(() => {
+    setSelectedProperty(null);
+  }, [properties]);
+
   // Handle API load error
   if (loadError) {
     return (
@@ -229,27 +234,38 @@ export default function MapView({ properties, error }: MapViewProps) {
             onCloseClick={handleInfoWindowClose}
           >
             <div className="property-info-window">
-              <div className="property-info-title">
-                {selectedProperty.addressOneLine}
-              </div>
-              
-              <div className="property-info-price">
-                {formatPrice(selectedProperty.price)}
-              </div>
-              
-              <div className="property-info-details">
-                <span>{formatNumber(selectedProperty.bedrooms)} beds</span>
-                <span> · </span>
-                <span>{formatNumber(selectedProperty.bathrooms)} baths</span>
-                <span> · </span>
-                <span>{formatNumber(selectedProperty.sqft, ' sq ft')}</span>
-              </div>
-              
-              {selectedProperty.saleDate && (
-                <div className="property-info-date">
-                  Sold on {formatDate(selectedProperty.saleDate)}
+              <div className="property-info-header">
+                <div className="property-info-title">
+                  {selectedProperty.addressOneLine}
                 </div>
-              )}
+                <div className="property-info-price">
+                  {formatPrice(selectedProperty.price)}
+                </div>
+              </div>
+              
+              <div className="property-info-content">
+                <div className="property-info-details">
+                  <div className="property-info-detail-item">
+                    <span className="property-info-detail-icon">🛏️</span>
+                    <span>{formatNumber(selectedProperty.bedrooms)} beds</span>
+                  </div>
+                  <div className="property-info-detail-item">
+                    <span className="property-info-detail-icon">🚿</span>
+                    <span>{formatNumber(selectedProperty.bathrooms)} baths</span>
+                  </div>
+                  <div className="property-info-detail-item">
+                    <span className="property-info-detail-icon">📐</span>
+                    <span>{formatNumber(selectedProperty.sqft, ' sq ft')}</span>
+                  </div>
+                </div>
+                
+                {selectedProperty.saleDate && (
+                  <div className="property-info-date">
+                    <span className="property-info-date-icon">📅</span>
+                    <span>Sold on {formatDate(selectedProperty.saleDate)}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </InfoWindow>
         )}
